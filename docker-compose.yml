@@ -1,0 +1,76 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: brainstorming_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-Bilal}
+      POSTGRES_DB: brainstorming_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - brainstorming_network
+    restart: unless-stopped
+
+  # Backend API (.NET 8)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: brainstorming_backend
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Production}
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=brainstorming_db;Username=postgres;Password=${POSTGRES_PASSWORD:-Bilal}
+      - JWT__Secret=${JWT_SECRET:-YourSuperSecretKeyThatIsAtLeast32CharactersLongForSecurity!}
+      - JWT__Issuer=BrainstormingApp
+      - JWT__Audience=BrainstormingApp
+      - JWT__ExpiryMinutes=1440
+    ports:
+      - "5081:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - brainstorming_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    volumes:
+      - backend_logs:/app/logs
+
+  # Frontend (React/Vite with Nginx)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: brainstorming_frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - brainstorming_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  backend_logs:
+    driver: local
+
+networks:
+  brainstorming_network:
+    driver: bridge
