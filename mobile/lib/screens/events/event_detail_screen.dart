@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/utils/extensions.dart';
@@ -515,71 +516,11 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen>
   }
 
   void _showAddMemberDialog(Team team) {
-    final emailController = TextEditingController();
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        decoration: const BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.border,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Text('Add Member to ${team.name}', style: AppTextStyles.h3),
-              const SizedBox(height: 8),
-              Text(
-                'Current: ${team.currentMemberCount}/${team.maxMembers} members',
-                style: AppTextStyles.bodySmall,
-              ),
-              const SizedBox(height: 24),
-              AppTextField(
-                controller: emailController,
-                label: 'Member Email',
-                hint: 'Enter user email',
-                keyboardType: TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 24),
-              AppButton(
-                text: 'Add Member',
-                onPressed: () async {
-                  if (emailController.text.isEmpty) return;
-                  final success = await ref.read(eventsProvider.notifier).addTeamMember(
-                    teamId: team.id,
-                    email: emailController.text,
-                  );
-                  if (success && context.mounted) {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Member added successfully')),
-                    );
-                  }
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
+      builder: (context) => _AddMemberSheet(team: team),
     );
   }
 
@@ -680,26 +621,214 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen>
                 ),
                 const SizedBox(height: 24),
                 AppButton(
-                  text: 'Create Session',
+                  text: 'Start Session',
                   onPressed: () async {
                     if (selectedTopicId == null) return;
-                    final success = await ref.read(sessionProvider.notifier).createSession(
+                    final session = await ref.read(sessionProvider.notifier).createAndGetSession(
                       teamId: team.id,
                       topicId: selectedTopicId!,
                       totalRounds: totalRounds,
                       roundDurationMinutes: roundDuration,
                     );
-                    if (success && context.mounted) {
+                    if (session != null && context.mounted) {
                       Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Session created successfully')),
-                      );
+                      // Navigate to brainstorming room
+                      context.push('/brainstorming/${session.id}');
                     }
                   },
                 ),
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// Add Member Sheet Widget with user dropdown
+class _AddMemberSheet extends ConsumerStatefulWidget {
+  final Team team;
+
+  const _AddMemberSheet({required this.team});
+
+  @override
+  ConsumerState<_AddMemberSheet> createState() => _AddMemberSheetState();
+}
+
+class _AddMemberSheetState extends ConsumerState<_AddMemberSheet> {
+  String? _selectedUserId;
+  List<TeamMember> _teamMembers = [];
+  bool _isLoadingMembers = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTeamMembers();
+  }
+
+  Future<void> _loadTeamMembers() async {
+    try {
+      final members = await ref.read(eventsProvider.notifier).getTeamMembers(widget.team.id);
+      setState(() {
+        _teamMembers = members;
+        _isLoadingMembers = false;
+      });
+    } catch (e) {
+      setState(() => _isLoadingMembers = false);
+    }
+  }
+
+  List<User> _getAvailableUsers(List<User> allUsers) {
+    final memberUserIds = _teamMembers.map((m) => m.userId).toSet();
+    return allUsers.where((u) => !memberUserIds.contains(u.id)).toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final allUsersAsync = ref.watch(allUsersProvider);
+
+    return Container(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.border,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text('Add Member to ${widget.team.name}', style: AppTextStyles.h3),
+            const SizedBox(height: 8),
+            Text(
+              'Current: ${widget.team.currentMemberCount}/${widget.team.maxMembers} members',
+              style: AppTextStyles.bodySmall,
+            ),
+            const SizedBox(height: 24),
+
+            // User dropdown
+            allUsersAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stack) => Text('Error loading users: $error'),
+              data: (allUsers) {
+                if (_isLoadingMembers) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                final availableUsers = _getAvailableUsers(allUsers);
+
+                if (availableUsers.isEmpty) {
+                  return Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceVariant,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text(
+                      'No available users to add.',
+                      textAlign: TextAlign.center,
+                    ),
+                  );
+                }
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text('Select User', style: AppTextStyles.labelLarge),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: AppColors.border),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: DropdownButton<String>(
+                        value: _selectedUserId,
+                        isExpanded: true,
+                        underline: const SizedBox(),
+                        hint: const Text('-- Select a user --'),
+                        items: availableUsers.map((user) {
+                          return DropdownMenuItem(
+                            value: user.id,
+                            child: Text(
+                              '${user.fullName} (${user.email})',
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() => _selectedUserId = value);
+                        },
+                      ),
+                    ),
+
+                    // Current members list
+                    if (_teamMembers.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      Text('Current Members', style: AppTextStyles.labelLarge),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceVariant,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        constraints: const BoxConstraints(maxHeight: 120),
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: _teamMembers.length,
+                          itemBuilder: (context, index) {
+                            final member = _teamMembers[index];
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Text(
+                                '${member.displayName} (${member.email ?? ""})',
+                                style: AppTextStyles.bodySmall,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+
+                    const SizedBox(height: 24),
+                    AppButton(
+                      text: 'Add Member',
+                      onPressed: _selectedUserId == null
+                          ? null
+                          : () async {
+                              final success = await ref.read(eventsProvider.notifier).addTeamMemberById(
+                                teamId: widget.team.id,
+                                userId: _selectedUserId!,
+                              );
+                              if (success && context.mounted) {
+                                Navigator.pop(context);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Member added successfully')),
+                                );
+                              }
+                            },
+                    ),
+                  ],
+                );
+              },
+            ),
+          ],
         ),
       ),
     );

@@ -10,6 +10,7 @@ class ApiConstants {
   static const String login = '/auth/login';
   static const String register = '/auth/register';
   static const String me = '/auth/me';
+  static const String users = '/auth/users';
 
   // Events
   static const String events = '/events';

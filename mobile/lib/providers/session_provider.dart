@@ -133,6 +133,33 @@ class SessionNotifier extends StateNotifier<SessionState> {
     }
   }
 
+  Future<BrainstormingSession?> createAndGetSession({
+    required String teamId,
+    required String topicId,
+    int totalRounds = 5,
+    int roundDurationMinutes = 5,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final session = await _sessionService.createSession(
+        CreateSessionRequest(
+          teamId: teamId,
+          topicId: topicId,
+          totalRounds: totalRounds,
+          roundDurationMinutes: roundDurationMinutes,
+        ),
+      );
+      state = state.copyWith(
+        sessions: [...state.sessions, session],
+        isLoading: false,
+      );
+      return session;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      return null;
+    }
+  }
+
   Future<bool> startSession(String id) async {
     state = state.copyWith(isLoading: true, error: null);
     try {

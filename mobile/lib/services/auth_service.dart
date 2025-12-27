@@ -36,6 +36,12 @@ class AuthService {
     return User.fromJson(response.data);
   }
 
+  Future<List<User>> getAllUsers() async {
+    final response = await _apiClient.get(ApiConstants.users);
+    final List<dynamic> data = response.data;
+    return data.map((json) => User.fromJson(json)).toList();
+  }
+
   Future<void> logout() async {
     await _apiClient.clearToken();
   }

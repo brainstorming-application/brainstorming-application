@@ -156,3 +156,9 @@ final isAuthenticatedProvider = Provider<bool>((ref) {
 final isAuthLoadingProvider = Provider<bool>((ref) {
   return ref.watch(authProvider).isLoading;
 });
+
+// All Users Provider - fetches list of all registered users
+final allUsersProvider = FutureProvider<List<User>>((ref) async {
+  final authService = ref.watch(authServiceProvider);
+  return await authService.getAllUsers();
+});

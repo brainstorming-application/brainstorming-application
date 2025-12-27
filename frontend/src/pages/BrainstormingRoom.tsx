@@ -251,11 +251,11 @@ export default function BrainstormingRoom() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `session-${sessionId}-report.pdf`;
+      a.download = `session-${sessionId}-report.txt`;
       a.click();
       window.URL.revokeObjectURL(url);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to export PDF');
+      setError(err.response?.data?.message || 'Failed to export report');
     }
   };
 
@@ -267,11 +267,11 @@ export default function BrainstormingRoom() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `session-${sessionId}-ideas.xlsx`;
+      a.download = `session-${sessionId}-ideas.csv`;
       a.click();
       window.URL.revokeObjectURL(url);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to export Excel');
+      setError(err.response?.data?.message || 'Failed to export CSV');
     }
   };
 
@@ -500,12 +500,12 @@ export default function BrainstormingRoom() {
                 <div className="flex space-x-2">
                   <button
                     onClick={handleExportPdf}
-                    className="flex items-center space-x-1 bg-red-100 text-red-700 px-3 py-1 rounded-lg hover:bg-red-200 transition-all text-sm"
+                    className="flex items-center space-x-1 bg-blue-100 text-blue-700 px-3 py-1 rounded-lg hover:bg-blue-200 transition-all text-sm"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    <span>PDF</span>
+                    <span>Report</span>
                   </button>
                   <button
                     onClick={handleExportExcel}
@@ -514,7 +514,7 @@ export default function BrainstormingRoom() {
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    <span>Excel</span>
+                    <span>CSV</span>
                   </button>
                 </div>
               </div>

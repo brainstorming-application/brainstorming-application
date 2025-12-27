@@ -70,7 +70,7 @@ public class ReportsController : ControllerBase
     }
 
     /// <summary>
-    /// Export session report as PDF
+    /// Export session report as text (PDF placeholder - use QuestPDF for real PDF)
     /// </summary>
     [HttpGet("session/{sessionId}/export/pdf")]
     public async Task<ActionResult> ExportSessionPdf(Guid sessionId)
@@ -78,7 +78,7 @@ public class ReportsController : ControllerBase
         try
         {
             var pdfBytes = await _reportingService.ExportSessionToPdfAsync(sessionId);
-            return File(pdfBytes, "application/pdf", $"session_{sessionId}_report.pdf");
+            return File(pdfBytes, "text/plain", $"session_{sessionId}_report.txt");
         }
         catch (Exception ex)
         {
@@ -87,7 +87,7 @@ public class ReportsController : ControllerBase
     }
 
     /// <summary>
-    /// Export session report as Excel/CSV
+    /// Export session report as CSV
     /// </summary>
     [HttpGet("session/{sessionId}/export/excel")]
     public async Task<ActionResult> ExportSessionExcel(Guid sessionId)
@@ -95,7 +95,7 @@ public class ReportsController : ControllerBase
         try
         {
             var excelBytes = await _reportingService.ExportSessionToExcelAsync(sessionId);
-            return File(excelBytes, "text/csv", $"session_{sessionId}_report.csv");
+            return File(excelBytes, "text/csv; charset=utf-8", $"session_{sessionId}_ideas.csv");
         }
         catch (Exception ex)
         {
@@ -104,7 +104,7 @@ public class ReportsController : ControllerBase
     }
 
     /// <summary>
-    /// Export event report as PDF
+    /// Export event report as text (PDF placeholder)
     /// </summary>
     [HttpGet("event/{eventId}/export/pdf")]
     public async Task<ActionResult> ExportEventPdf(Guid eventId)
@@ -112,7 +112,7 @@ public class ReportsController : ControllerBase
         try
         {
             var pdfBytes = await _reportingService.ExportEventToPdfAsync(eventId);
-            return File(pdfBytes, "application/pdf", $"event_{eventId}_report.pdf");
+            return File(pdfBytes, "text/plain", $"event_{eventId}_report.txt");
         }
         catch (Exception ex)
         {
@@ -121,7 +121,7 @@ public class ReportsController : ControllerBase
     }
 
     /// <summary>
-    /// Export event report as Excel/CSV
+    /// Export event report as CSV
     /// </summary>
     [HttpGet("event/{eventId}/export/excel")]
     public async Task<ActionResult> ExportEventExcel(Guid eventId)
@@ -129,7 +129,7 @@ public class ReportsController : ControllerBase
         try
         {
             var excelBytes = await _reportingService.ExportEventToExcelAsync(eventId);
-            return File(excelBytes, "text/csv", $"event_{eventId}_report.csv");
+            return File(excelBytes, "text/csv; charset=utf-8", $"event_{eventId}_sessions.csv");
         }
         catch (Exception ex)
         {

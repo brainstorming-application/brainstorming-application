@@ -197,6 +197,31 @@ class EventsNotifier extends StateNotifier<EventsState> {
     }
   }
 
+  Future<bool> addTeamMemberById({
+    required String teamId,
+    required String userId,
+  }) async {
+    try {
+      await _teamService.addTeamMember(
+        teamId,
+        AddTeamMemberRequest(userId: userId),
+      );
+      // Reload teams to get updated member count
+      if (state.selectedEvent != null) {
+        final teams = await _teamService.getTeamsByEvent(state.selectedEvent!.id);
+        state = state.copyWith(teams: teams);
+      }
+      return true;
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      return false;
+    }
+  }
+
+  Future<List<TeamMember>> getTeamMembers(String teamId) async {
+    return await _teamService.getTeamMembers(teamId);
+  }
+
   void clearError() {
     state = state.copyWith(error: null);
   }

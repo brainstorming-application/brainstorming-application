@@ -35,11 +35,22 @@ public class IdeaService : IIdeaService
             throw new InvalidOperationException("Can only submit ideas during active sessions");
         }
 
-        // Validate round exists and is active
-        var round = await _unitOfWork.Rounds.GetByIdAsync(dto.RoundId);
+        // Get round - either from dto or get current round from session
+        Round? round;
+        if (dto.RoundId.HasValue && dto.RoundId.Value != Guid.Empty)
+        {
+            round = await _unitOfWork.Rounds.GetByIdAsync(dto.RoundId.Value);
+        }
+        else
+        {
+            // Get current round from session
+            round = await _unitOfWork.Rounds.FirstOrDefaultAsync(
+                r => r.SessionId == dto.SessionId && r.RoundNumber == session.CurrentRound);
+        }
+
         if (round == null)
         {
-            throw new InvalidOperationException("Round not found");
+            throw new InvalidOperationException("Round not found. Make sure the session is started.");
         }
 
         if (round.SessionId != dto.SessionId)
@@ -56,7 +67,7 @@ public class IdeaService : IIdeaService
         var isMember = await _teamService.IsMemberAsync(session.TeamId, userId);
         if (!isMember)
         {
-            throw new UnauthorizedAccessException("Only team members can submit ideas");
+            throw new InvalidOperationException("Only team members can submit ideas");
         }
 
         // Validate content
@@ -71,7 +82,7 @@ public class IdeaService : IIdeaService
         }
 
         // Check idea limit (3 ideas per user per round)
-        var userIdeaCount = await GetUserIdeaCountInRoundAsync(dto.RoundId, userId);
+        var userIdeaCount = await GetUserIdeaCountInRoundAsync(round.Id, userId);
         if (userIdeaCount >= MaxIdeasPerRound)
         {
             throw new InvalidOperationException($"You have already submitted {MaxIdeasPerRound} ideas this round");
@@ -80,7 +91,7 @@ public class IdeaService : IIdeaService
         var idea = new Idea
         {
             Id = Guid.NewGuid(),
-            RoundId = dto.RoundId,
+            RoundId = round.Id,  // Use the resolved round
             SessionId = dto.SessionId,
             UserId = userId,
             Content = dto.Content.Trim(),

@@ -295,9 +295,10 @@ static async Task SeedTestData(ApplicationDbContext context)
 
     context.Teams.Add(testTeam);
 
-    // Add team members
+    // Add team members (including event manager for testing)
     var teamMembers = new[]
     {
+        new BrainstormingApp.Core.Entities.TeamMember { Id = Guid.NewGuid(), TeamId = testTeam.Id, UserId = eventManager.Id, JoinedAt = DateTime.UtcNow },
         new BrainstormingApp.Core.Entities.TeamMember { Id = Guid.NewGuid(), TeamId = testTeam.Id, UserId = teamLeader.Id, JoinedAt = DateTime.UtcNow },
         new BrainstormingApp.Core.Entities.TeamMember { Id = Guid.NewGuid(), TeamId = testTeam.Id, UserId = member1.Id, JoinedAt = DateTime.UtcNow },
         new BrainstormingApp.Core.Entities.TeamMember { Id = Guid.NewGuid(), TeamId = testTeam.Id, UserId = member2.Id, JoinedAt = DateTime.UtcNow },
@@ -317,6 +318,6 @@ static async Task SeedTestData(ApplicationDbContext context)
     Console.WriteLine("  - member3@test.com (TeamMember)");
     Console.WriteLine("Event: Test Brainstorming Event");
     Console.WriteLine("Topic: How to improve team productivity?");
-    Console.WriteLine("Team: Alpha Team (4 members)");
+    Console.WriteLine("Team: Alpha Team (5 members)");
     Console.WriteLine("========================");
 }
