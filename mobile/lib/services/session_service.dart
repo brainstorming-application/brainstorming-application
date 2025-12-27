@@ -48,8 +48,8 @@ class SessionService {
     return BrainstormingSession.fromJson(response.data);
   }
 
-  Future<Round> nextRound(String id) async {
-    final response = await _apiClient.post('${ApiConstants.sessions}/$id/next-round');
+  Future<Round> advanceRound(String id) async {
+    final response = await _apiClient.post('${ApiConstants.sessions}/$id/advance-round');
     return Round.fromJson(response.data);
   }
 
@@ -64,11 +64,18 @@ class SessionService {
     return data.map((json) => BrainstormingSession.fromJson(json)).toList();
   }
 
-  // Get active session for a team
-  Future<BrainstormingSession?> getActiveSession(String teamId) async {
+  // Get sessions for a team
+  Future<List<BrainstormingSession>> getSessionsByTeam(String teamId) async {
+    final response = await _apiClient.get('${ApiConstants.sessions}/team/$teamId');
+    final List<dynamic> data = response.data;
+    return data.map((json) => BrainstormingSession.fromJson(json)).toList();
+  }
+
+  // Get current round info
+  Future<Round?> getCurrentRound(String sessionId) async {
     try {
-      final response = await _apiClient.get('${ApiConstants.sessions}/team/$teamId/active');
-      return BrainstormingSession.fromJson(response.data);
+      final response = await _apiClient.get('${ApiConstants.sessions}/$sessionId/current-round');
+      return Round.fromJson(response.data);
     } catch (e) {
       return null;
     }

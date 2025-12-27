@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BrainstormingApp.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c35f04971b687b45280380cc514a36e7783c2128")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e409fe6b0b5f3520ed4792a308294be17c70b140")]
 [assembly: System.Reflection.AssemblyProductAttribute("BrainstormingApp.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BrainstormingApp.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

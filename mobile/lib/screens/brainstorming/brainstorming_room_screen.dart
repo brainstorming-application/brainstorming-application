@@ -9,6 +9,7 @@ import '../../core/utils/validators.dart';
 import '../../models/enums.dart';
 import '../../models/idea.dart';
 import '../../providers/providers.dart';
+import '../../services/chatgpt_service.dart';
 import '../../widgets/common/loading_indicator.dart';
 import '../../widgets/common/app_text_field.dart';
 
@@ -26,19 +27,29 @@ class BrainstormingRoomScreen extends ConsumerStatefulWidget {
 
 class _BrainstormingRoomScreenState extends ConsumerState<BrainstormingRoomScreen> {
   final _ideaController = TextEditingController();
+  final _chatGPTService = ChatGPTService();
   Timer? _timer;
   int _remainingSeconds = 0;
+
+  // AI State
+  bool _showAIPanel = false;
+  bool _generatingAI = false;
+  List<String> _aiSuggestions = [];
+  String? _aiError;
 
   @override
   void initState() {
     super.initState();
-    _loadSession();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadSession();
+    });
   }
 
   Future<void> _loadSession() async {
-    await ref.read(sessionProvider.notifier).loadSession(widget.sessionId);
-    await ref.read(sessionProvider.notifier).loadIdeas(widget.sessionId);
-    await ref.read(sessionProvider.notifier).joinSession(widget.sessionId);
+    final notifier = ref.read(sessionProvider.notifier);
+    await notifier.loadSession(widget.sessionId);
+    await notifier.loadIdeas(widget.sessionId);
+    await notifier.joinSession(widget.sessionId);
 
     final session = ref.read(currentSessionProvider);
     if (session != null && session.session.isActive) {
@@ -64,7 +75,6 @@ class _BrainstormingRoomScreenState extends ConsumerState<BrainstormingRoomScree
   void dispose() {
     _timer?.cancel();
     _ideaController.dispose();
-    ref.read(sessionProvider.notifier).leaveSession(widget.sessionId);
     super.dispose();
   }
 
@@ -94,7 +104,8 @@ class _BrainstormingRoomScreenState extends ConsumerState<BrainstormingRoomScree
       );
     }
 
-    final isLeader = user?.role == UserRole.teamLeader;
+    // EventManager and TeamLeader can control session
+    final canControlSession = user?.role == UserRole.teamLeader || user?.role == UserRole.eventManager;
     final isActive = session.session.isActive;
 
     return Scaffold(
@@ -119,7 +130,7 @@ class _BrainstormingRoomScreenState extends ConsumerState<BrainstormingRoomScree
           ],
         ),
         actions: [
-          if (isLeader && !session.session.isCompleted)
+          if (canControlSession && !session.session.isCompleted)
             PopupMenuButton<String>(
               onSelected: (value) async {
                 switch (value) {
@@ -136,7 +147,7 @@ class _BrainstormingRoomScreenState extends ConsumerState<BrainstormingRoomScree
                     _startTimer(_remainingSeconds);
                     break;
                   case 'next':
-                    await ref.read(sessionProvider.notifier).nextRound(widget.sessionId);
+                    await ref.read(sessionProvider.notifier).advanceRound(widget.sessionId);
                     _startTimer(session.session.roundDurationMinutes * 60);
                     break;
                   case 'end':
@@ -249,6 +260,92 @@ class _BrainstormingRoomScreenState extends ConsumerState<BrainstormingRoomScree
                   ),
           ),
 
+          // AI Panel
+          if (isActive && _showAIPanel)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.info.withOpacity(0.05),
+                border: Border(
+                  top: BorderSide(color: AppColors.info.withOpacity(0.2)),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.auto_awesome, color: AppColors.info, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        'AI Idea Generator',
+                        style: AppTextStyles.labelLarge.copyWith(color: AppColors.info),
+                      ),
+                      const Spacer(),
+                      if (_generatingAI)
+                        SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.info,
+                          ),
+                        )
+                      else
+                        TextButton(
+                          onPressed: _generateAIIdeas,
+                          child: Text('Generate Ideas'),
+                        ),
+                    ],
+                  ),
+                  if (_aiError != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(
+                        _aiError!,
+                        style: TextStyle(color: AppColors.error, fontSize: 12),
+                      ),
+                    ),
+                  if (_aiSuggestions.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    ...List.generate(_aiSuggestions.length, (index) {
+                      final suggestion = _aiSuggestions[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: InkWell(
+                          onTap: () => _useAISuggestion(suggestion),
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: AppColors.border),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    suggestion,
+                                    style: AppTextStyles.bodySmall,
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.add_circle_outline,
+                                  color: AppColors.info,
+                                  size: 20,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                  ],
+                ],
+              ),
+            ),
+
           // Input Section
           if (isActive)
             Container(
@@ -270,6 +367,25 @@ class _BrainstormingRoomScreenState extends ConsumerState<BrainstormingRoomScree
               ),
               child: Row(
                 children: [
+                  // AI Button
+                  Container(
+                    decoration: BoxDecoration(
+                      color: _showAIPanel ? AppColors.info : AppColors.surfaceVariant,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _showAIPanel = !_showAIPanel;
+                        });
+                      },
+                      icon: Icon(
+                        Icons.auto_awesome,
+                        color: _showAIPanel ? Colors.white : AppColors.textSecondary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: AppTextField(
                       controller: _ideaController,
@@ -480,6 +596,40 @@ class _BrainstormingRoomScreenState extends ConsumerState<BrainstormingRoomScree
       case SessionStatus.notStarted:
         return AppColors.info;
     }
+  }
+
+  Future<void> _generateAIIdeas() async {
+    final session = ref.read(currentSessionProvider);
+    if (session == null) return;
+
+    setState(() {
+      _generatingAI = true;
+      _aiError = null;
+    });
+
+    try {
+      final suggestions = await _chatGPTService.generateIdeas(
+        sessionId: widget.sessionId,
+        topicDescription: session.topicDescription ?? session.topicTitle ?? '',
+        count: 3,
+      );
+      setState(() {
+        _aiSuggestions = suggestions;
+        _generatingAI = false;
+      });
+    } catch (e) {
+      setState(() {
+        _aiError = e.toString();
+        _generatingAI = false;
+      });
+    }
+  }
+
+  void _useAISuggestion(String suggestion) {
+    _ideaController.text = suggestion;
+    setState(() {
+      _showAIPanel = false;
+    });
   }
 
   Future<void> _submitIdea() async {

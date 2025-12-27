@@ -43,16 +43,16 @@ class IdeaService {
     await _apiClient.delete('${ApiConstants.ideas}/$id');
   }
 
-  // Get ideas by round for a session
-  Future<List<IdeasByRound>> getIdeasByRound(String sessionId) async {
-    final response = await _apiClient.get('${ApiConstants.ideas}/session/$sessionId/by-round');
+  // Get ideas grouped by round for a session
+  Future<List<IdeasByRound>> getIdeasGroupedByRound(String sessionId) async {
+    final response = await _apiClient.get('${ApiConstants.ideas}/session/$sessionId/grouped');
     final List<dynamic> data = response.data;
     return data.map((json) => IdeasByRound.fromJson(json)).toList();
   }
 
-  // Get my ideas for a session
-  Future<List<Idea>> getMyIdeas(String sessionId) async {
-    final response = await _apiClient.get('${ApiConstants.ideas}/session/$sessionId/my');
+  // Get all ideas for a session
+  Future<List<Idea>> getIdeasBySession(String sessionId) async {
+    final response = await _apiClient.get('${ApiConstants.ideas}/session/$sessionId');
     final List<dynamic> data = response.data;
     return data.map((json) => Idea.fromJson(json)).toList();
   }

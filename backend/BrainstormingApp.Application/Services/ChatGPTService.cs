@@ -24,8 +24,9 @@ public class ChatGPTService : IChatGPTService
     {
         _unitOfWork = unitOfWork;
         _httpClient = httpClient;
-        _apiKey = configuration["OpenAI:ApiKey"] ?? "";
-        _apiUrl = configuration["OpenAI:ApiUrl"] ?? "https://api.openai.com/v1/chat/completions";
+        // Use Groq API (free, fast) instead of OpenAI
+        _apiKey = configuration["Groq:ApiKey"] ?? configuration["OpenAI:ApiKey"] ?? "";
+        _apiUrl = configuration["Groq:ApiUrl"] ?? "https://api.groq.com/openai/v1/chat/completions";
     }
 
     public async Task<GenerateIdeasResponseDto> GenerateIdeasAsync(GenerateIdeasRequestDto dto, Guid userId)
@@ -227,7 +228,7 @@ Only respond with the JSON, no additional text.";
         {
             var request = new
             {
-                model = "gpt-3.5-turbo",
+                model = "llama-3.3-70b-versatile", // Groq's fast Llama model (free)
                 messages = new[]
                 {
                     new { role = "user", content = prompt }
@@ -246,12 +247,17 @@ Only respond with the JSON, no additional text.";
             var content = result?.Choices?.FirstOrDefault()?.Message?.Content ?? "";
             var tokensUsed = result?.Usage?.TotalTokens ?? 0;
 
+            // Debug log
+            Console.WriteLine($"=== GROQ RESPONSE ===");
+            Console.WriteLine(content);
+            Console.WriteLine($"=====================");
+
             return (content, tokensUsed);
         }
         catch (Exception ex)
         {
             // Log error and return mock response
-            Console.WriteLine($"OpenAI API error: {ex.Message}");
+            Console.WriteLine($"Groq API error: {ex.Message}");
             return (GetMockResponse(prompt), 0);
         }
     }

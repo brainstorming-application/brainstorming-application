@@ -64,35 +64,38 @@ class BrainstormingSession extends Equatable {
 
 class Round extends Equatable {
   final String id;
-  final String sessionId;
+  final String? sessionId;
   final int roundNumber;
-  final RoundStatus status;
+  final SessionStatus status;
   final DateTime? startedAt;
   final DateTime? endedAt;
   final int? durationSeconds;
+  final int? ideaCount;
 
   const Round({
     required this.id,
-    required this.sessionId,
+    this.sessionId,
     required this.roundNumber,
     required this.status,
     this.startedAt,
     this.endedAt,
     this.durationSeconds,
+    this.ideaCount,
   });
 
-  bool get isActive => status == RoundStatus.active;
-  bool get isCompleted => status == RoundStatus.completed;
+  bool get isActive => status == SessionStatus.inProgress;
+  bool get isCompleted => status == SessionStatus.completed;
 
   factory Round.fromJson(Map<String, dynamic> json) {
     return Round(
       id: json['id'] ?? '',
-      sessionId: json['sessionId'] ?? '',
+      sessionId: json['sessionId'],
       roundNumber: json['roundNumber'] ?? 1,
-      status: RoundStatus.fromString(json['status'] ?? 'Active'),
+      status: SessionStatus.fromString(json['status'] ?? 'NotStarted'),
       startedAt: json['startedAt'] != null ? DateTime.parse(json['startedAt']) : null,
       endedAt: json['endedAt'] != null ? DateTime.parse(json['endedAt']) : null,
       durationSeconds: json['durationSeconds'],
+      ideaCount: json['ideaCount'],
     );
   }
 
@@ -105,11 +108,12 @@ class Round extends Equatable {
       'startedAt': startedAt?.toIso8601String(),
       'endedAt': endedAt?.toIso8601String(),
       'durationSeconds': durationSeconds,
+      'ideaCount': ideaCount,
     };
   }
 
   @override
-  List<Object?> get props => [id, sessionId, roundNumber, status, startedAt, endedAt, durationSeconds];
+  List<Object?> get props => [id, sessionId, roundNumber, status, startedAt, endedAt, durationSeconds, ideaCount];
 }
 
 class SessionDetail extends Equatable {

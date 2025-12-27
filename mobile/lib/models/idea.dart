@@ -36,9 +36,9 @@ class Idea extends Equatable {
       content: json['content'] ?? '',
       orderInRound: json['orderInRound'] ?? 0,
       isAIGenerated: json['isAIGenerated'] ?? false,
-      aiAnnotation: json['aiAnnotation'],
+      aiAnnotation: json['aiAnnotation'] ?? json['aIAnnotation'],
       submittedAt: DateTime.parse(json['submittedAt'] ?? DateTime.now().toIso8601String()),
-      authorName: json['authorName'],
+      authorName: json['userFullName'] ?? json['authorName'],
       roundNumber: json['roundNumber'],
     );
   }

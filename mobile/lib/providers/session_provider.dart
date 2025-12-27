@@ -98,7 +98,7 @@ class SessionNotifier extends StateNotifier<SessionState> {
 
   Future<void> loadIdeas(String sessionId) async {
     try {
-      final ideasByRound = await _ideaService.getIdeasByRound(sessionId);
+      final ideasByRound = await _ideaService.getIdeasGroupedByRound(sessionId);
       final allIdeas = ideasByRound.expand((r) => r.ideas).toList();
       state = state.copyWith(ideas: allIdeas, ideasByRound: ideasByRound);
     } catch (e) {
@@ -205,9 +205,9 @@ class SessionNotifier extends StateNotifier<SessionState> {
     }
   }
 
-  Future<bool> nextRound(String id) async {
+  Future<bool> advanceRound(String id) async {
     try {
-      await _sessionService.nextRound(id);
+      await _sessionService.advanceRound(id);
       await loadSession(id);
       return true;
     } catch (e) {
