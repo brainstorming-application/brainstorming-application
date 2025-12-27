@@ -7,6 +7,7 @@ public interface ISessionService
 {
     Task<IEnumerable<SessionDto>> GetSessionsByTeamAsync(Guid teamId);
     Task<IEnumerable<SessionDto>> GetSessionsByTopicAsync(Guid topicId);
+    Task<IEnumerable<SessionDto>> GetMySessionsAsync(Guid userId);
     Task<SessionDetailDto?> GetSessionByIdAsync(Guid sessionId);
     Task<SessionDto> CreateSessionAsync(CreateSessionDto dto, Guid userId);
     Task<SessionDto> StartSessionAsync(Guid sessionId, Guid userId);

@@ -49,6 +49,25 @@ public class SessionService : ISessionService
         return result.OrderByDescending(s => s.CreatedAt);
     }
 
+    public async Task<IEnumerable<SessionDto>> GetMySessionsAsync(Guid userId)
+    {
+        // Get all team memberships for this user
+        var memberships = await _unitOfWork.TeamMembers.FindAsync(m => m.UserId == userId);
+        var teamIds = memberships.Select(m => m.TeamId).ToList();
+
+        var result = new List<SessionDto>();
+        foreach (var teamId in teamIds)
+        {
+            var sessions = await _unitOfWork.BrainstormingSessions.FindAsync(s => s.TeamId == teamId);
+            foreach (var session in sessions)
+            {
+                result.Add(await MapToDto(session));
+            }
+        }
+
+        return result.OrderByDescending(s => s.CreatedAt);
+    }
+
     public async Task<SessionDetailDto?> GetSessionByIdAsync(Guid sessionId)
     {
         var session = await _unitOfWork.BrainstormingSessions.GetByIdAsync(sessionId);

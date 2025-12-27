@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using BrainstormingApp.Application.DTOs.Auth;
 using BrainstormingApp.Application.Interfaces;
+using UserDto = BrainstormingApp.Application.Interfaces.UserDto;
 
 namespace BrainstormingApp.API.Controllers;
 
@@ -72,6 +73,21 @@ public class AuthController : ControllerBase
             }
 
             return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "An error occurred", error = ex.Message });
+        }
+    }
+
+    [Authorize]
+    [HttpGet("users")]
+    public async Task<ActionResult<IEnumerable<UserDto>>> GetAllUsers()
+    {
+        try
+        {
+            var users = await _authService.GetAllUsersAsync();
+            return Ok(users);
         }
         catch (Exception ex)
         {

@@ -127,6 +127,19 @@ public class AuthService : IAuthService
         };
     }
 
+    public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
+    {
+        var users = await _unitOfWork.Users.GetAllAsync();
+        return users.Select(u => new UserDto
+        {
+            Id = u.Id,
+            Email = u.Email,
+            FirstName = u.FirstName,
+            LastName = u.LastName,
+            Role = u.Role.ToString()
+        });
+    }
+
     public string GenerateJwtToken(Guid userId, string email, string role)
     {
         var secret = _configuration["JWT:Secret"] ?? throw new InvalidOperationException("JWT Secret not configured");

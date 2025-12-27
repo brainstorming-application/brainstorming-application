@@ -29,3 +29,19 @@ C:\Users\Bilal\Desktop\oop-project (1)\oop-project\backend\BrainstormingApp.Appl
 C:\Users\Bilal\Desktop\oop-project (1)\oop-project\backend\BrainstormingApp.Application\obj\Debug\net8.0\refint\BrainstormingApp.Application.dll
 C:\Users\Bilal\Desktop\oop-project (1)\oop-project\backend\BrainstormingApp.Application\obj\Debug\net8.0\BrainstormingApp.Application.pdb
 C:\Users\Bilal\Desktop\oop-project (1)\oop-project\backend\BrainstormingApp.Application\obj\Debug\net8.0\ref\BrainstormingApp.Application.dll
+C:\Users\Asus\Desktop\x\brainstorming-application\backend\BrainstormingApp.Application\bin\Debug\net8.0\BrainstormingApp.Application.deps.json
+C:\Users\Asus\Desktop\x\brainstorming-application\backend\BrainstormingApp.Application\bin\Debug\net8.0\BrainstormingApp.Application.dll
+C:\Users\Asus\Desktop\x\brainstorming-application\backend\BrainstormingApp.Application\bin\Debug\net8.0\BrainstormingApp.Application.pdb
+C:\Users\Asus\Desktop\x\brainstorming-application\backend\BrainstormingApp.Application\bin\Debug\net8.0\BrainstormingApp.Core.dll
+C:\Users\Asus\Desktop\x\brainstorming-application\backend\BrainstormingApp.Application\bin\Debug\net8.0\BrainstormingApp.Core.pdb
+C:\Users\Asus\Desktop\x\brainstorming-application\backend\BrainstormingApp.Application\obj\Debug\net8.0\BrainstormingApp.Application.csproj.AssemblyReference.cache
+C:\Users\Asus\Desktop\x\brainstorming-application\backend\BrainstormingApp.Application\obj\Debug\net8.0\BrainstormingApp.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Asus\Desktop\x\brainstorming-application\backend\BrainstormingApp.Application\obj\Debug\net8.0\BrainstormingApp.Application.AssemblyInfoInputs.cache
+C:\Users\Asus\Desktop\x\brainstorming-application\backend\BrainstormingApp.Application\obj\Debug\net8.0\BrainstormingApp.Application.AssemblyInfo.cs
+C:\Users\Asus\Desktop\x\brainstorming-application\backend\BrainstormingApp.Application\obj\Debug\net8.0\BrainstormingApp.Application.csproj.CoreCompileInputs.cache
+C:\Users\Asus\Desktop\x\brainstorming-application\backend\BrainstormingApp.Application\obj\Debug\net8.0\BrainstormingApp.Application.sourcelink.json
+C:\Users\Asus\Desktop\x\brainstorming-application\backend\BrainstormingApp.Application\obj\Debug\net8.0\Brainsto.33D90E05.Up2Date
+C:\Users\Asus\Desktop\x\brainstorming-application\backend\BrainstormingApp.Application\obj\Debug\net8.0\BrainstormingApp.Application.dll
+C:\Users\Asus\Desktop\x\brainstorming-application\backend\BrainstormingApp.Application\obj\Debug\net8.0\refint\BrainstormingApp.Application.dll
+C:\Users\Asus\Desktop\x\brainstorming-application\backend\BrainstormingApp.Application\obj\Debug\net8.0\BrainstormingApp.Application.pdb
+C:\Users\Asus\Desktop\x\brainstorming-application\backend\BrainstormingApp.Application\obj\Debug\net8.0\ref\BrainstormingApp.Application.dll

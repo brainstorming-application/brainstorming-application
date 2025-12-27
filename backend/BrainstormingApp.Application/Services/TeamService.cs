@@ -29,6 +29,25 @@ public class TeamService : ITeamService
         return result.OrderByDescending(t => t.CreatedAt);
     }
 
+    public async Task<IEnumerable<TeamDetailDto>> GetMyTeamsAsync(Guid userId)
+    {
+        // Get all team memberships for this user
+        var memberships = await _unitOfWork.TeamMembers.FindAsync(m => m.UserId == userId);
+        var teamIds = memberships.Select(m => m.TeamId).ToList();
+
+        var result = new List<TeamDetailDto>();
+        foreach (var teamId in teamIds)
+        {
+            var team = await _unitOfWork.Teams.GetByIdAsync(teamId);
+            if (team != null)
+            {
+                result.Add(await MapToDetailDto(team));
+            }
+        }
+
+        return result.OrderByDescending(t => t.CreatedAt);
+    }
+
     public async Task<TeamDetailDto?> GetTeamByIdAsync(Guid teamId)
     {
         var team = await _unitOfWork.Teams.GetByIdAsync(teamId);
@@ -184,16 +203,32 @@ public class TeamService : ITeamService
             throw new InvalidOperationException($"Team has reached maximum capacity ({team.MaxMembers} members)");
         }
 
-        // Verify user exists
-        var user = await _unitOfWork.Users.GetByIdAsync(dto.UserId);
-        if (user == null)
+        // Find user by email or userId
+        User? user = null;
+        if (!string.IsNullOrEmpty(dto.Email))
         {
-            throw new InvalidOperationException("User not found");
+            user = await _unitOfWork.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == dto.Email.ToLower());
+            if (user == null)
+            {
+                throw new InvalidOperationException($"User with email '{dto.Email}' not found");
+            }
+        }
+        else if (dto.UserId.HasValue)
+        {
+            user = await _unitOfWork.Users.GetByIdAsync(dto.UserId.Value);
+            if (user == null)
+            {
+                throw new InvalidOperationException("User not found");
+            }
+        }
+        else
+        {
+            throw new InvalidOperationException("Either email or userId must be provided");
         }
 
         // Check if already a member
         var existing = await _unitOfWork.TeamMembers.FirstOrDefaultAsync(
-            m => m.TeamId == teamId && m.UserId == dto.UserId);
+            m => m.TeamId == teamId && m.UserId == user.Id);
         if (existing != null)
         {
             throw new InvalidOperationException("User is already a team member");
@@ -203,7 +238,7 @@ public class TeamService : ITeamService
         {
             Id = Guid.NewGuid(),
             TeamId = teamId,
-            UserId = dto.UserId,
+            UserId = user.Id,
             JoinedAt = DateTime.UtcNow
         };
 

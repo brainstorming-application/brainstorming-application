@@ -28,6 +28,24 @@ public class SessionsController : ControllerBase
     }
 
     /// <summary>
+    /// Get sessions for the current user
+    /// </summary>
+    [HttpGet("my")]
+    public async Task<ActionResult<IEnumerable<SessionDto>>> GetMySessions()
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            var sessions = await _sessionService.GetMySessionsAsync(userId);
+            return Ok(sessions);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
     /// Get all sessions for a team
     /// </summary>
     [HttpGet("team/{teamId}")]

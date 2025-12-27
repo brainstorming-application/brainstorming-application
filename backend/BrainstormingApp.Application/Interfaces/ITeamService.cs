@@ -5,6 +5,7 @@ namespace BrainstormingApp.Application.Interfaces;
 public interface ITeamService
 {
     Task<IEnumerable<TeamDetailDto>> GetTeamsByEventAsync(Guid eventId);
+    Task<IEnumerable<TeamDetailDto>> GetMyTeamsAsync(Guid userId);
     Task<TeamDetailDto?> GetTeamByIdAsync(Guid teamId);
     Task<TeamDetailDto> CreateTeamAsync(CreateTeamDto dto, Guid userId);
     Task<TeamDetailDto> UpdateTeamAsync(Guid teamId, UpdateTeamDto dto, Guid userId);

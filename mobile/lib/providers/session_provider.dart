@@ -1,0 +1,300 @@
+import 'dart:async';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/models.dart';
+import '../services/services.dart';
+
+// Service Providers
+final sessionServiceProvider = Provider<SessionService>((ref) => SessionService());
+final ideaServiceProvider = Provider<IdeaService>((ref) => IdeaService());
+final signalRServiceProvider = Provider<SignalRService>((ref) => SignalRService());
+
+// Session State
+class SessionState {
+  final List<BrainstormingSession> sessions;
+  final SessionDetail? currentSession;
+  final List<Idea> ideas;
+  final List<IdeasByRound> ideasByRound;
+  final bool isLoading;
+  final String? error;
+  final int remainingSeconds;
+
+  const SessionState({
+    this.sessions = const [],
+    this.currentSession,
+    this.ideas = const [],
+    this.ideasByRound = const [],
+    this.isLoading = false,
+    this.error,
+    this.remainingSeconds = 0,
+  });
+
+  SessionState copyWith({
+    List<BrainstormingSession>? sessions,
+    SessionDetail? currentSession,
+    List<Idea>? ideas,
+    List<IdeasByRound>? ideasByRound,
+    bool? isLoading,
+    String? error,
+    int? remainingSeconds,
+  }) {
+    return SessionState(
+      sessions: sessions ?? this.sessions,
+      currentSession: currentSession ?? this.currentSession,
+      ideas: ideas ?? this.ideas,
+      ideasByRound: ideasByRound ?? this.ideasByRound,
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+      remainingSeconds: remainingSeconds ?? this.remainingSeconds,
+    );
+  }
+}
+
+// Session Notifier
+class SessionNotifier extends StateNotifier<SessionState> {
+  final SessionService _sessionService;
+  final IdeaService _ideaService;
+  final SignalRService _signalRService;
+
+  StreamSubscription? _sessionSubscription;
+  StreamSubscription? _roundSubscription;
+  StreamSubscription? _ideaSubscription;
+  StreamSubscription? _timerSubscription;
+
+  SessionNotifier(
+    this._sessionService,
+    this._ideaService,
+    this._signalRService,
+  ) : super(const SessionState());
+
+  Future<void> loadSessions({String? teamId}) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final sessions = await _sessionService.getSessions(teamId: teamId);
+      state = state.copyWith(sessions: sessions, isLoading: false);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  Future<void> loadMySessions() async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final sessions = await _sessionService.getMySessions();
+      state = state.copyWith(sessions: sessions, isLoading: false);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  Future<void> loadSession(String id) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final session = await _sessionService.getSession(id);
+      state = state.copyWith(currentSession: session, isLoading: false);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  Future<void> loadIdeas(String sessionId) async {
+    try {
+      final ideasByRound = await _ideaService.getIdeasByRound(sessionId);
+      final allIdeas = ideasByRound.expand((r) => r.ideas).toList();
+      state = state.copyWith(ideas: allIdeas, ideasByRound: ideasByRound);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+    }
+  }
+
+  Future<bool> createSession({
+    required String teamId,
+    required String topicId,
+    int totalRounds = 5,
+    int roundDurationMinutes = 5,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final session = await _sessionService.createSession(
+        CreateSessionRequest(
+          teamId: teamId,
+          topicId: topicId,
+          totalRounds: totalRounds,
+          roundDurationMinutes: roundDurationMinutes,
+        ),
+      );
+      state = state.copyWith(
+        sessions: [...state.sessions, session],
+        isLoading: false,
+      );
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> startSession(String id) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await _sessionService.startSession(id);
+      await loadSession(id);
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> pauseSession(String id) async {
+    try {
+      await _sessionService.pauseSession(id);
+      await loadSession(id);
+      return true;
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> resumeSession(String id) async {
+    try {
+      await _sessionService.resumeSession(id);
+      await loadSession(id);
+      return true;
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> endSession(String id) async {
+    try {
+      await _sessionService.endSession(id);
+      await loadSession(id);
+      return true;
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> nextRound(String id) async {
+    try {
+      await _sessionService.nextRound(id);
+      await loadSession(id);
+      return true;
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> submitIdea(String sessionId, String content) async {
+    try {
+      final idea = await _ideaService.createIdea(
+        CreateIdeaRequest(sessionId: sessionId, content: content),
+      );
+      state = state.copyWith(ideas: [...state.ideas, idea]);
+      return true;
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      return false;
+    }
+  }
+
+  // SignalR Integration
+  Future<void> joinSession(String sessionId) async {
+    await _signalRService.connect();
+    await _signalRService.joinSession(sessionId);
+    _subscribeToEvents();
+  }
+
+  Future<void> leaveSession(String sessionId) async {
+    await _signalRService.leaveSession(sessionId);
+    _unsubscribeFromEvents();
+  }
+
+  void _subscribeToEvents() {
+    _sessionSubscription = _signalRService.onSessionUpdated.listen((session) {
+      if (state.currentSession?.session.id == session.id) {
+        loadSession(session.id);
+      }
+    });
+
+    _roundSubscription = _signalRService.onRoundStarted.listen((round) {
+      if (state.currentSession != null) {
+        loadSession(state.currentSession!.session.id);
+      }
+    });
+
+    _ideaSubscription = _signalRService.onIdeaSubmitted.listen((idea) {
+      if (idea.sessionId == state.currentSession?.session.id) {
+        state = state.copyWith(ideas: [...state.ideas, idea]);
+      }
+    });
+
+    _timerSubscription = _signalRService.onTimerUpdate.listen((seconds) {
+      state = state.copyWith(remainingSeconds: seconds);
+    });
+  }
+
+  void _unsubscribeFromEvents() {
+    _sessionSubscription?.cancel();
+    _roundSubscription?.cancel();
+    _ideaSubscription?.cancel();
+    _timerSubscription?.cancel();
+  }
+
+  void updateTimer(int seconds) {
+    state = state.copyWith(remainingSeconds: seconds);
+  }
+
+  void clearError() {
+    state = state.copyWith(error: null);
+  }
+
+  void clearCurrentSession() {
+    state = state.copyWith(
+      currentSession: null,
+      ideas: [],
+      ideasByRound: [],
+      remainingSeconds: 0,
+    );
+  }
+
+  @override
+  void dispose() {
+    _unsubscribeFromEvents();
+    _signalRService.dispose();
+    super.dispose();
+  }
+}
+
+// Session Provider
+final sessionProvider = StateNotifierProvider<SessionNotifier, SessionState>((ref) {
+  final sessionService = ref.watch(sessionServiceProvider);
+  final ideaService = ref.watch(ideaServiceProvider);
+  final signalRService = ref.watch(signalRServiceProvider);
+  return SessionNotifier(sessionService, ideaService, signalRService);
+});
+
+// Convenience providers
+final sessionListProvider = Provider<List<BrainstormingSession>>((ref) {
+  return ref.watch(sessionProvider).sessions;
+});
+
+final currentSessionProvider = Provider<SessionDetail?>((ref) {
+  return ref.watch(sessionProvider).currentSession;
+});
+
+final sessionIdeasProvider = Provider<List<Idea>>((ref) {
+  return ref.watch(sessionProvider).ideas;
+});
+
+final ideasByRoundProvider = Provider<List<IdeasByRound>>((ref) {
+  return ref.watch(sessionProvider).ideasByRound;
+});
+
+final remainingSecondsProvider = Provider<int>((ref) {
+  return ref.watch(sessionProvider).remainingSeconds;
+});

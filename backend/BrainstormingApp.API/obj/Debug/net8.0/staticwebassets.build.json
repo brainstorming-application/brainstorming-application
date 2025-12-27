@@ -1,1 +1,11 @@
-{"Version":1,"Hash":"/sSGY+TzowyHSEpkiTo8QrYpMYZWkO76qGQQHQTwQrE=","Source":"BrainstormingApp.API","BasePath":"_content/BrainstormingApp.API","Mode":"Default","ManifestType":"Build","ReferencedProjectsConfiguration":[],"DiscoveryPatterns":[],"Assets":[],"Endpoints":[]}
+{
+  "Version": 1,
+  "Hash": "3BPazZGZYeUngPLqY2Ums64tumYNb2P4kVuAWra/Lic=",
+  "Source": "BrainstormingApp.API",
+  "BasePath": "_content/BrainstormingApp.API",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

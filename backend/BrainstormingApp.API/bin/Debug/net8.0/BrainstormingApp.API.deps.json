@@ -11,7 +11,7 @@
           "BrainstormingApp.Application": "1.0.0",
           "BrainstormingApp.Infrastructure": "1.0.0",
           "Microsoft.AspNetCore.Authentication.JwtBearer": "8.0.22",
-          "Microsoft.AspNetCore.OpenApi": "8.0.10",
+          "Microsoft.AspNetCore.OpenApi": "8.0.22",
           "Microsoft.EntityFrameworkCore.Design": "8.0.22",
           "Microsoft.EntityFrameworkCore.InMemory": "8.0.22",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "8.0.11",
@@ -48,14 +48,14 @@
           }
         }
       },
-      "Microsoft.AspNetCore.OpenApi/8.0.10": {
+      "Microsoft.AspNetCore.OpenApi/8.0.22": {
         "dependencies": {
           "Microsoft.OpenApi": "1.6.14"
         },
         "runtime": {
           "lib/net8.0/Microsoft.AspNetCore.OpenApi.dll": {
-            "assemblyVersion": "8.0.10.0",
-            "fileVersion": "8.0.1024.46804"
+            "assemblyVersion": "8.0.22.0",
+            "fileVersion": "8.0.2225.52808"
           }
         }
       },
@@ -693,7 +693,7 @@
         },
         "runtime": {
           "BrainstormingApp.Application.dll": {
-            "assemblyVersion": "1.0.0.0",
+            "assemblyVersion": "1.0.0",
             "fileVersion": "1.0.0.0"
           }
         }
@@ -701,7 +701,7 @@
       "BrainstormingApp.Core/1.0.0": {
         "runtime": {
           "BrainstormingApp.Core.dll": {
-            "assemblyVersion": "1.0.0.0",
+            "assemblyVersion": "1.0.0",
             "fileVersion": "1.0.0.0"
           }
         }
@@ -714,7 +714,7 @@
         },
         "runtime": {
           "BrainstormingApp.Infrastructure.dll": {
-            "assemblyVersion": "1.0.0.0",
+            "assemblyVersion": "1.0.0",
             "fileVersion": "1.0.0.0"
           }
         }
@@ -748,12 +748,12 @@
       "path": "microsoft.aspnetcore.authentication.jwtbearer/8.0.22",
       "hashPath": "microsoft.aspnetcore.authentication.jwtbearer.8.0.22.nupkg.sha512"
     },
-    "Microsoft.AspNetCore.OpenApi/8.0.10": {
+    "Microsoft.AspNetCore.OpenApi/8.0.22": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-kzYiW/IbSN0xittjplA8eN1wrNcRi3DMalYRrEuF2xyf2Y5u7cGCfgN1oNZ+g3aBQzMKTQwYsY1PeNmC+P0WnA==",
-      "path": "microsoft.aspnetcore.openapi/8.0.10",
-      "hashPath": "microsoft.aspnetcore.openapi.8.0.10.nupkg.sha512"
+      "sha512": "sha512-NljWP+NNJDu3Uls1OxiIrhOnhRTCdpJNLukJFMrBIPU1FyencrBFpgHiUuv/K5TqDPE7iKaZVreDSHSVhk4QrA==",
+      "path": "microsoft.aspnetcore.openapi/8.0.22",
+      "hashPath": "microsoft.aspnetcore.openapi.8.0.22.nupkg.sha512"
     },
     "Microsoft.Bcl.AsyncInterfaces/6.0.0": {
       "type": "package",

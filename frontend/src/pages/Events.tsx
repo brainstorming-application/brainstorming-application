@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { eventService } from '../services/eventService';
 import { Event, EventStatus, UserRole } from '../types';
 import { useAuthStore } from '../store/authStore';
 
 export default function Events() {
+  const navigate = useNavigate();
   const { user } = useAuthStore();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
@@ -112,7 +114,11 @@ export default function Events() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {events.map((event) => (
-            <div key={event.id} className="bg-white p-6 rounded-lg shadow">
+            <div
+              key={event.id}
+              className="bg-white p-6 rounded-lg shadow cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => navigate(`/events/${event.id}`)}
+            >
               <div className="flex justify-between items-start mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">{event.name}</h3>
                 <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(event.status)}`}>
@@ -134,7 +140,7 @@ export default function Events() {
               </div>
 
               {user?.role === UserRole.EventManager && (
-                <div className="mt-4 flex space-x-2">
+                <div className="mt-4 flex space-x-2" onClick={(e) => e.stopPropagation()}>
                   <select
                     value={event.status}
                     onChange={(e) => handleStatusChange(event.id, e.target.value as EventStatus)}

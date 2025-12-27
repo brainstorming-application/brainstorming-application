@@ -19,6 +19,24 @@ public class TeamsController : ControllerBase
     }
 
     /// <summary>
+    /// Get teams for the current user
+    /// </summary>
+    [HttpGet("my")]
+    public async Task<ActionResult<IEnumerable<TeamDetailDto>>> GetMyTeams()
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            var teams = await _teamService.GetMyTeamsAsync(userId);
+            return Ok(teams);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
     /// Get all teams for an event
     /// </summary>
     [HttpGet("event/{eventId}")]

@@ -89,6 +89,8 @@ export interface Team {
   description?: string;
   leaderId?: string;
   maxMembers: number;
+  memberCount?: number;
+  currentMemberCount?: number; // Backend returns this
   createdAt: string;
   updatedAt: string;
 }
@@ -195,6 +197,8 @@ export interface SessionDetail extends BrainstormingSession {
 export interface CreateSessionRequest {
   teamId: string;
   topicId: string;
+  totalRounds?: number;
+  roundDurationMinutes?: number;
 }
 
 // Idea Types Extended

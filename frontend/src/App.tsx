@@ -3,6 +3,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Events from './pages/Events';
+import EventDetail from './pages/EventDetail';
 import Teams from './pages/Teams';
 import Sessions from './pages/Sessions';
 import BrainstormingRoom from './pages/BrainstormingRoom';
@@ -32,6 +33,16 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <Events />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/events/:eventId"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <EventDetail />
               </Layout>
             </ProtectedRoute>
           }
