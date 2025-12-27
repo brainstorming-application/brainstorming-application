@@ -1,6 +1,8 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using BrainstormingApp.Application.Common;
+using BrainstormingApp.Application.Common.Exceptions;
 using BrainstormingApp.Application.DTOs.Topic;
 using BrainstormingApp.Application.Interfaces;
 using BrainstormingApp.Core.Enums;
@@ -23,122 +25,69 @@ public class TopicsController : ControllerBase
     /// Get all topics for an event
     /// </summary>
     [HttpGet("event/{eventId}")]
-    public async Task<ActionResult<IEnumerable<TopicDetailDto>>> GetByEvent(Guid eventId)
+    public async Task<ActionResult<ApiResponse<IEnumerable<TopicDetailDto>>>> GetByEvent(Guid eventId)
     {
-        try
-        {
-            var topics = await _topicService.GetTopicsByEventAsync(eventId);
-            return Ok(topics);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var topics = await _topicService.GetTopicsByEventAsync(eventId);
+        return Ok(ApiResponse<IEnumerable<TopicDetailDto>>.SuccessResponse(topics));
     }
 
     /// <summary>
     /// Get a specific topic by ID
     /// </summary>
     [HttpGet("{id}")]
-    public async Task<ActionResult<TopicDetailDto>> GetById(Guid id)
+    public async Task<ActionResult<ApiResponse<TopicDetailDto>>> GetById(Guid id)
     {
-        try
+        var topic = await _topicService.GetTopicByIdAsync(id);
+        if (topic == null)
         {
-            var topic = await _topicService.GetTopicByIdAsync(id);
-            if (topic == null)
-            {
-                return NotFound(new { message = "Topic not found" });
-            }
-            return Ok(topic);
+            throw new NotFoundException("Topic", id);
         }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        return Ok(ApiResponse<TopicDetailDto>.SuccessResponse(topic));
     }
 
     /// <summary>
     /// Create a new topic
     /// </summary>
     [HttpPost]
-    public async Task<ActionResult<TopicDetailDto>> Create([FromBody] CreateTopicDto dto)
+    public async Task<ActionResult<ApiResponse<TopicDetailDto>>> Create([FromBody] CreateTopicDto dto)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            var topic = await _topicService.CreateTopicAsync(dto, userId);
-            return CreatedAtAction(nameof(GetById), new { id = topic.Id }, topic);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Forbid(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var userId = GetCurrentUserId();
+        var topic = await _topicService.CreateTopicAsync(dto, userId);
+        return CreatedAtAction(nameof(GetById), new { id = topic.Id },
+            ApiResponse<TopicDetailDto>.SuccessResponse(topic, "Topic created successfully"));
     }
 
     /// <summary>
     /// Update an existing topic
     /// </summary>
     [HttpPut("{id}")]
-    public async Task<ActionResult<TopicDetailDto>> Update(Guid id, [FromBody] UpdateTopicDto dto)
+    public async Task<ActionResult<ApiResponse<TopicDetailDto>>> Update(Guid id, [FromBody] UpdateTopicDto dto)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            var topic = await _topicService.UpdateTopicAsync(id, dto, userId);
-            return Ok(topic);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Forbid(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var userId = GetCurrentUserId();
+        var topic = await _topicService.UpdateTopicAsync(id, dto, userId);
+        return Ok(ApiResponse<TopicDetailDto>.SuccessResponse(topic, "Topic updated successfully"));
     }
 
     /// <summary>
     /// Delete a topic
     /// </summary>
     [HttpDelete("{id}")]
-    public async Task<ActionResult> Delete(Guid id)
+    public async Task<ActionResult<ApiResponse>> Delete(Guid id)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            await _topicService.DeleteTopicAsync(id, userId);
-            return NoContent();
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Forbid(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var userId = GetCurrentUserId();
+        await _topicService.DeleteTopicAsync(id, userId);
+        return Ok(ApiResponse.SuccessResult("Topic deleted successfully"));
     }
 
     /// <summary>
     /// Change topic status
     /// </summary>
     [HttpPatch("{id}/status")]
-    public async Task<ActionResult<TopicDetailDto>> ChangeStatus(Guid id, [FromBody] TopicStatus status)
+    public async Task<ActionResult<ApiResponse<TopicDetailDto>>> ChangeStatus(Guid id, [FromBody] TopicStatus status)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            var topic = await _topicService.ChangeStatusAsync(id, status, userId);
-            return Ok(topic);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var userId = GetCurrentUserId();
+        var topic = await _topicService.ChangeStatusAsync(id, status, userId);
+        return Ok(ApiResponse<TopicDetailDto>.SuccessResponse(topic, "Topic status updated successfully"));
     }
 
     private Guid GetCurrentUserId()
@@ -148,7 +97,7 @@ public class TopicsController : ControllerBase
 
         if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
         {
-            throw new UnauthorizedAccessException("Invalid user token");
+            throw new UnauthorizedException("Invalid user token");
         }
 
         return userId;

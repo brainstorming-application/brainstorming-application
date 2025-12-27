@@ -1,6 +1,8 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using BrainstormingApp.Application.Common;
+using BrainstormingApp.Application.Common.Exceptions;
 using BrainstormingApp.Application.DTOs.Report;
 using BrainstormingApp.Application.Interfaces;
 
@@ -22,51 +24,30 @@ public class ReportsController : ControllerBase
     /// Get analytics for a session
     /// </summary>
     [HttpGet("session/{sessionId}/analytics")]
-    public async Task<ActionResult<SessionAnalyticsDto>> GetSessionAnalytics(Guid sessionId)
+    public async Task<ActionResult<ApiResponse<SessionAnalyticsDto>>> GetSessionAnalytics(Guid sessionId)
     {
-        try
-        {
-            var analytics = await _reportingService.GetSessionAnalyticsAsync(sessionId);
-            return Ok(analytics);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var analytics = await _reportingService.GetSessionAnalyticsAsync(sessionId);
+        return Ok(ApiResponse<SessionAnalyticsDto>.SuccessResponse(analytics));
     }
 
     /// <summary>
     /// Get analytics for an event
     /// </summary>
     [HttpGet("event/{eventId}/analytics")]
-    public async Task<ActionResult<EventAnalyticsDto>> GetEventAnalytics(Guid eventId)
+    public async Task<ActionResult<ApiResponse<EventAnalyticsDto>>> GetEventAnalytics(Guid eventId)
     {
-        try
-        {
-            var analytics = await _reportingService.GetEventAnalyticsAsync(eventId);
-            return Ok(analytics);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var analytics = await _reportingService.GetEventAnalyticsAsync(eventId);
+        return Ok(ApiResponse<EventAnalyticsDto>.SuccessResponse(analytics));
     }
 
     /// <summary>
     /// Get session audit logs
     /// </summary>
     [HttpGet("session/{sessionId}/logs")]
-    public async Task<ActionResult<IEnumerable<SessionLogDto>>> GetSessionLogs(Guid sessionId)
+    public async Task<ActionResult<ApiResponse<IEnumerable<SessionLogDto>>>> GetSessionLogs(Guid sessionId)
     {
-        try
-        {
-            var logs = await _reportingService.GetSessionLogsAsync(sessionId);
-            return Ok(logs);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var logs = await _reportingService.GetSessionLogsAsync(sessionId);
+        return Ok(ApiResponse<IEnumerable<SessionLogDto>>.SuccessResponse(logs));
     }
 
     /// <summary>
@@ -75,15 +56,8 @@ public class ReportsController : ControllerBase
     [HttpGet("session/{sessionId}/export/pdf")]
     public async Task<ActionResult> ExportSessionPdf(Guid sessionId)
     {
-        try
-        {
-            var pdfBytes = await _reportingService.ExportSessionToPdfAsync(sessionId);
-            return File(pdfBytes, "application/pdf", $"session_{sessionId}_report.pdf");
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var pdfBytes = await _reportingService.ExportSessionToPdfAsync(sessionId);
+        return File(pdfBytes, "application/pdf", $"session_{sessionId}_report.pdf");
     }
 
     /// <summary>
@@ -92,15 +66,8 @@ public class ReportsController : ControllerBase
     [HttpGet("session/{sessionId}/export/excel")]
     public async Task<ActionResult> ExportSessionExcel(Guid sessionId)
     {
-        try
-        {
-            var excelBytes = await _reportingService.ExportSessionToExcelAsync(sessionId);
-            return File(excelBytes, "text/csv", $"session_{sessionId}_report.csv");
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var excelBytes = await _reportingService.ExportSessionToExcelAsync(sessionId);
+        return File(excelBytes, "text/csv", $"session_{sessionId}_report.csv");
     }
 
     /// <summary>
@@ -109,15 +76,8 @@ public class ReportsController : ControllerBase
     [HttpGet("event/{eventId}/export/pdf")]
     public async Task<ActionResult> ExportEventPdf(Guid eventId)
     {
-        try
-        {
-            var pdfBytes = await _reportingService.ExportEventToPdfAsync(eventId);
-            return File(pdfBytes, "application/pdf", $"event_{eventId}_report.pdf");
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var pdfBytes = await _reportingService.ExportEventToPdfAsync(eventId);
+        return File(pdfBytes, "application/pdf", $"event_{eventId}_report.pdf");
     }
 
     /// <summary>
@@ -126,15 +86,8 @@ public class ReportsController : ControllerBase
     [HttpGet("event/{eventId}/export/excel")]
     public async Task<ActionResult> ExportEventExcel(Guid eventId)
     {
-        try
-        {
-            var excelBytes = await _reportingService.ExportEventToExcelAsync(eventId);
-            return File(excelBytes, "text/csv", $"event_{eventId}_report.csv");
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var excelBytes = await _reportingService.ExportEventToExcelAsync(eventId);
+        return File(excelBytes, "text/csv", $"event_{eventId}_report.csv");
     }
 
     private Guid GetCurrentUserId()
@@ -144,7 +97,7 @@ public class ReportsController : ControllerBase
 
         if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
         {
-            throw new UnauthorizedAccessException("Invalid user token");
+            throw new UnauthorizedException("Invalid user token");
         }
 
         return userId;

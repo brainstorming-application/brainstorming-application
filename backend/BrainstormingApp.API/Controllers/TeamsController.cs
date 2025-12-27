@@ -1,6 +1,8 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using BrainstormingApp.Application.Common;
+using BrainstormingApp.Application.Common.Exceptions;
 using BrainstormingApp.Application.DTOs.Team;
 using BrainstormingApp.Application.Interfaces;
 
@@ -22,183 +24,102 @@ public class TeamsController : ControllerBase
     /// Get all teams for an event
     /// </summary>
     [HttpGet("event/{eventId}")]
-    public async Task<ActionResult<IEnumerable<TeamDetailDto>>> GetByEvent(Guid eventId)
+    public async Task<ActionResult<ApiResponse<IEnumerable<TeamDetailDto>>>> GetByEvent(Guid eventId)
     {
-        try
-        {
-            var teams = await _teamService.GetTeamsByEventAsync(eventId);
-            return Ok(teams);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var teams = await _teamService.GetTeamsByEventAsync(eventId);
+        return Ok(ApiResponse<IEnumerable<TeamDetailDto>>.SuccessResponse(teams));
     }
 
     /// <summary>
     /// Get a specific team by ID
     /// </summary>
     [HttpGet("{id}")]
-    public async Task<ActionResult<TeamDetailDto>> GetById(Guid id)
+    public async Task<ActionResult<ApiResponse<TeamDetailDto>>> GetById(Guid id)
     {
-        try
+        var team = await _teamService.GetTeamByIdAsync(id);
+        if (team == null)
         {
-            var team = await _teamService.GetTeamByIdAsync(id);
-            if (team == null)
-            {
-                return NotFound(new { message = "Team not found" });
-            }
-            return Ok(team);
+            throw new NotFoundException("Team", id);
         }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        return Ok(ApiResponse<TeamDetailDto>.SuccessResponse(team));
     }
 
     /// <summary>
     /// Create a new team
     /// </summary>
     [HttpPost]
-    public async Task<ActionResult<TeamDetailDto>> Create([FromBody] CreateTeamDto dto)
+    public async Task<ActionResult<ApiResponse<TeamDetailDto>>> Create([FromBody] CreateTeamDto dto)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            var team = await _teamService.CreateTeamAsync(dto, userId);
-            return CreatedAtAction(nameof(GetById), new { id = team.Id }, team);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Forbid(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var userId = GetCurrentUserId();
+        var team = await _teamService.CreateTeamAsync(dto, userId);
+        return CreatedAtAction(nameof(GetById), new { id = team.Id },
+            ApiResponse<TeamDetailDto>.SuccessResponse(team, "Team created successfully"));
     }
 
     /// <summary>
     /// Update an existing team
     /// </summary>
     [HttpPut("{id}")]
-    public async Task<ActionResult<TeamDetailDto>> Update(Guid id, [FromBody] UpdateTeamDto dto)
+    public async Task<ActionResult<ApiResponse<TeamDetailDto>>> Update(Guid id, [FromBody] UpdateTeamDto dto)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            var team = await _teamService.UpdateTeamAsync(id, dto, userId);
-            return Ok(team);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Forbid(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var userId = GetCurrentUserId();
+        var team = await _teamService.UpdateTeamAsync(id, dto, userId);
+        return Ok(ApiResponse<TeamDetailDto>.SuccessResponse(team, "Team updated successfully"));
     }
 
     /// <summary>
     /// Delete a team
     /// </summary>
     [HttpDelete("{id}")]
-    public async Task<ActionResult> Delete(Guid id)
+    public async Task<ActionResult<ApiResponse>> Delete(Guid id)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            await _teamService.DeleteTeamAsync(id, userId);
-            return NoContent();
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Forbid(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var userId = GetCurrentUserId();
+        await _teamService.DeleteTeamAsync(id, userId);
+        return Ok(ApiResponse.SuccessResult("Team deleted successfully"));
     }
 
     /// <summary>
     /// Get team members
     /// </summary>
     [HttpGet("{id}/members")]
-    public async Task<ActionResult<IEnumerable<TeamMemberDetailDto>>> GetMembers(Guid id)
+    public async Task<ActionResult<ApiResponse<IEnumerable<TeamMemberDetailDto>>>> GetMembers(Guid id)
     {
-        try
-        {
-            var members = await _teamService.GetTeamMembersAsync(id);
-            return Ok(members);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var members = await _teamService.GetTeamMembersAsync(id);
+        return Ok(ApiResponse<IEnumerable<TeamMemberDetailDto>>.SuccessResponse(members));
     }
 
     /// <summary>
     /// Add a member to the team
     /// </summary>
     [HttpPost("{id}/members")]
-    public async Task<ActionResult<TeamMemberDetailDto>> AddMember(Guid id, [FromBody] AddTeamMemberDto dto)
+    public async Task<ActionResult<ApiResponse<TeamMemberDetailDto>>> AddMember(Guid id, [FromBody] AddTeamMemberDto dto)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            var member = await _teamService.AddMemberAsync(id, dto, userId);
-            return CreatedAtAction(nameof(GetMembers), new { id }, member);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Forbid(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var userId = GetCurrentUserId();
+        var member = await _teamService.AddMemberAsync(id, dto, userId);
+        return CreatedAtAction(nameof(GetMembers), new { id },
+            ApiResponse<TeamMemberDetailDto>.SuccessResponse(member, "Member added successfully"));
     }
 
     /// <summary>
     /// Remove a member from the team
     /// </summary>
-    [HttpDelete("{teamId}/members/{userId}")]
-    public async Task<ActionResult> RemoveMember(Guid teamId, Guid userId)
+    [HttpDelete("{teamId}/members/{memberId}")]
+    public async Task<ActionResult<ApiResponse>> RemoveMember(Guid teamId, Guid memberId)
     {
-        try
-        {
-            var currentUserId = GetCurrentUserId();
-            await _teamService.RemoveMemberAsync(teamId, userId, currentUserId);
-            return NoContent();
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Forbid(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var currentUserId = GetCurrentUserId();
+        await _teamService.RemoveMemberAsync(teamId, memberId, currentUserId);
+        return Ok(ApiResponse.SuccessResult("Member removed successfully"));
     }
 
     /// <summary>
     /// Check if team has valid size for brainstorming (3-6 members)
     /// </summary>
     [HttpGet("{id}/validate-size")]
-    public async Task<ActionResult<bool>> ValidateSize(Guid id)
+    public async Task<ActionResult<ApiResponse<object>>> ValidateSize(Guid id)
     {
-        try
-        {
-            var isValid = await _teamService.ValidateTeamSizeAsync(id);
-            var memberCount = await _teamService.GetMemberCountAsync(id);
-            return Ok(new { isValid, memberCount, minRequired = 3, maxAllowed = 6 });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var isValid = await _teamService.ValidateTeamSizeAsync(id);
+        var memberCount = await _teamService.GetMemberCountAsync(id);
+        return Ok(ApiResponse<object>.SuccessResponse(new { isValid, memberCount, minRequired = 3, maxAllowed = 6 }));
     }
 
     private Guid GetCurrentUserId()
@@ -208,7 +129,7 @@ public class TeamsController : ControllerBase
 
         if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
         {
-            throw new UnauthorizedAccessException("Invalid user token");
+            throw new UnauthorizedException("Invalid user token");
         }
 
         return userId;
