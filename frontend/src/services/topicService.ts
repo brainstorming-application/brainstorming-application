@@ -32,7 +32,8 @@ export const topicService = {
   },
 
   async changeStatus(id: string, status: TopicStatus): Promise<Topic> {
-    const response = await api.patch<ApiResponse<Topic>>(`/topics/${id}/status`, status);
+    // Backend ChangeTopicStatusDto bekliyor: { status: TopicStatus }
+    const response = await api.patch<ApiResponse<Topic>>(`/topics/${id}/status`, { status });
     if (!response.data.data) {
       throw new Error(response.data.message || 'Failed to change status');
     }

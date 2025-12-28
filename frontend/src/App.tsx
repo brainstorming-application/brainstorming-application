@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Events from './pages/Events';
+import EventDetail from './pages/EventDetail';
 import Topics from './pages/Topics';
 import Teams from './pages/Teams';
 import Sessions from './pages/Sessions';
@@ -46,6 +47,16 @@ function AppContent() {
             <ProtectedRoute>
               <Layout>
                 <Events />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/events/:eventId"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <EventDetail />
               </Layout>
             </ProtectedRoute>
           }

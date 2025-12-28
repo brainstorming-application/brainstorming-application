@@ -3,8 +3,8 @@ import { Event, CreateEventRequest, EventStatus } from '../types';
 
 export const eventService = {
   async getAll(): Promise<Event[]> {
-    const response = await api.get<Event[]>('/events');
-    return response.data;
+    const response = await api.get<ApiResponse<Event[]>>('/events');
+    return response.data.data || [];
   },
 
   async getById(id: string): Promise<Event> {
@@ -32,7 +32,25 @@ export const eventService = {
   },
 
   async updateStatus(id: string, status: EventStatus): Promise<void> {
-    await api.patch(`/events/${id}/status`, { status });
+    let endpoint = '';
+    switch (status) {
+      case EventStatus.Active:
+        endpoint = `/events/${id}/start`;
+        break;
+      case EventStatus.Completed:
+        endpoint = `/events/${id}/complete`;
+        break;
+      case EventStatus.Cancelled:
+        endpoint = `/events/${id}/cancel`;
+        break;
+      default:
+        throw new Error(`Unsupported status: ${status}`);
+    }
+    // POST isteği gönder (backend'de POST kullanılıyor)
+    const response = await api.post<ApiResponse<Event>>(endpoint);
+    if (!response.data.success) {
+      throw new Error(response.data.message || 'Failed to update event status');
+    }
   },
 
   async delete(id: string): Promise<void> {

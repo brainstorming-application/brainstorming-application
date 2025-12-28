@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { eventService } from '../services/eventService';
 import { Event, EventStatus, UserRole } from '../types';
 import { useAuthStore } from '../store/authStore';
 
 export default function Events() {
+  const navigate = useNavigate();
   const { user } = useAuthStore();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,7 +62,26 @@ export default function Events() {
       await eventService.updateStatus(id, status);
       loadEvents();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to update event status');
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to update event status';
+      setError(errorMessage);
+      // Hata mesajını 3 saniye sonra temizle
+      setTimeout(() => setError(null), 3000);
+    }
+  };
+
+  // Backend business rule'a göre geçerli status geçişlerini döndür
+  const getAvailableStatuses = (currentStatus: EventStatus): EventStatus[] => {
+    switch (currentStatus) {
+      case EventStatus.Planned:
+        return [EventStatus.Planned, EventStatus.Active, EventStatus.Cancelled];
+      case EventStatus.Active:
+        return [EventStatus.Active, EventStatus.Completed, EventStatus.Cancelled];
+      case EventStatus.Completed:
+        return [EventStatus.Completed]; // Completed'dan başka status'e geçilemez
+      case EventStatus.Cancelled:
+        return [EventStatus.Cancelled]; // Cancelled'dan başka status'e geçilemez
+      default:
+        return [currentStatus];
     }
   };
 
@@ -112,7 +133,19 @@ export default function Events() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {events.map((event) => (
-            <div key={event.id} className="bg-white p-6 rounded-lg shadow">
+            <div
+              key={event.id}
+              className="bg-white p-6 rounded-lg shadow cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={(e) => {
+                const target = e.target as HTMLElement;
+                if (target.tagName === 'BUTTON' || target.tagName === 'SELECT' || target.closest('button, select')) {
+                  return;
+                }
+                if (event.id) {
+                  navigate(`/events/${event.id}`);
+                }
+              }}
+            >
               <div className="flex justify-between items-start mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">{event.name}</h3>
                 <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(event.status)}`}>
@@ -134,16 +167,25 @@ export default function Events() {
               </div>
 
               {user?.role === UserRole.EventManager && (
-                <div className="mt-4 flex space-x-2">
+                <div className="mt-4 flex space-x-2" onClick={(e) => e.stopPropagation()}>
                   <select
                     value={event.status}
                     onChange={(e) => handleStatusChange(event.id, e.target.value as EventStatus)}
                     className="text-xs px-2 py-1 border rounded"
+                    disabled={event.status === EventStatus.Completed || event.status === EventStatus.Cancelled}
+                    title={
+                      event.status === EventStatus.Completed
+                        ? 'Completed events cannot be changed'
+                        : event.status === EventStatus.Cancelled
+                        ? 'Cancelled events cannot be changed'
+                        : undefined
+                    }
                   >
-                    <option value={EventStatus.Planned}>Planned</option>
-                    <option value={EventStatus.Active}>Active</option>
-                    <option value={EventStatus.Completed}>Completed</option>
-                    <option value={EventStatus.Cancelled}>Cancelled</option>
+                    {getAvailableStatuses(event.status).map((status) => (
+                      <option key={status} value={status}>
+                        {status}
+                      </option>
+                    ))}
                   </select>
                   <button
                     onClick={() => handleDeleteEvent(event.id)}
