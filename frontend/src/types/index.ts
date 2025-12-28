@@ -237,6 +237,7 @@ export interface GenerateSummaryRequest {
 export interface GenerateSummaryResponse {
   summary: string;
   keyThemes: string[];
+  topIdeas: string[];
   tokensUsed: number;
 }
 

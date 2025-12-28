@@ -15,7 +15,8 @@
       "Bash(cmd.exe:*)",
       "Bash(flutter analyze:*)",
       "Bash(dotnet run)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(docker-compose up:*)"
     ]
   }
 }
