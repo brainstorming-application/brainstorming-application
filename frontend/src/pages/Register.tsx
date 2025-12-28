@@ -42,8 +42,10 @@ export default function Register() {
         role: formData.role,
       });
       navigate('/dashboard');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Register error:', error);
+      console.error('Error response data:', error.response?.data);
+      // Error zaten authStore'da handle ediliyor, burada sadece log
     }
   };
 
@@ -166,6 +168,11 @@ export default function Register() {
                   className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200"
                   placeholder="+1234567890"
                 />
+                {formData.phoneNumber && (
+                  <p className="mt-1 text-xs text-gray-500">
+                    Format: + ile başlamalı, örn: +905551234567
+                  </p>
+                )}
               </div>
             </div>
 
@@ -212,11 +219,15 @@ export default function Register() {
                   type="password"
                   autoComplete="new-password"
                   required
+                  minLength={8}
                   value={formData.password}
                   onChange={handleChange}
                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200"
                   placeholder="••••••••"
                 />
+                <p className="mt-1 text-xs text-gray-500">
+                  Min 8 karakter, büyük harf, küçük harf, rakam ve özel karakter içermeli
+                </p>
               </div>
 
               <div>

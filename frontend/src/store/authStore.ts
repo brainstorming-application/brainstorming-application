@@ -92,8 +92,24 @@ export const useAuthStore = create<AuthState>((set) => ({
         isLoading: false,
       });
     } catch (error: any) {
+      let errorMessage = 'Registration failed';
+      
+      // Backend'den gelen validation hatalarını parse et
+      if (error.response?.data) {
+        const data = error.response.data;
+        
+        // Eğer errors array varsa, tüm hataları birleştir
+        if (data.errors && Array.isArray(data.errors) && data.errors.length > 0) {
+          errorMessage = data.errors.join('. ');
+        } else if (data.message) {
+          errorMessage = data.message;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       set({
-        error: error.response?.data?.message || 'Registration failed',
+        error: errorMessage,
         isLoading: false,
       });
       throw error;
