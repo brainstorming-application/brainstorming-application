@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using BrainstormingApp.API.Filters;
 using BrainstormingApp.API.Hubs;
 using BrainstormingApp.API.Middleware;
 using BrainstormingApp.Application.Interfaces;
@@ -39,7 +40,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog();
 
 // Add services to the container
-builder.Services.AddControllers()
+builder.Services.AddControllers(options =>
+    {
+        options.Filters.Add<ModelValidationFilter>();
+    })
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
@@ -184,13 +188,15 @@ builder.Services.AddRateLimiter(options =>
                 AutoReplenishment = true
             }));
 
-    // Auth endpoints: 5 requests per minute (brute force protection)
+    // Auth endpoints: 20 requests per minute (brute force protection)
+    // Development modunda daha esnek, production'da daha sıkı olabilir
+    var isDevelopment = builder.Environment.IsDevelopment();
     options.AddPolicy("auth", context =>
         RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             factory: _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 5,
+                PermitLimit = isDevelopment ? 30 : 10, // Development: 30, Production: 10
                 Window = TimeSpan.FromMinutes(1),
                 AutoReplenishment = true
             }));

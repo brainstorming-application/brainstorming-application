@@ -185,12 +185,46 @@ export default function BrainstormingRoom() {
 
   const handleSubmitIdea = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!sessionId || !newIdea.trim() || myIdeasCount >= 3) return;
+    if (!sessionId || !newIdea.trim() || myIdeasCount >= 3 || !session) return;
 
     try {
       setSubmitting(true);
-      await ideaService.submit({ sessionId, content: newIdea.trim() });
+      setError(null);
+      
+      // Get current round ID - try from session.rounds first, then API
+      let roundId: string | undefined;
+      
+      if (session.rounds && session.rounds.length > 0) {
+        const currentRound = session.rounds.find(
+          (r) => r.roundNumber === session.currentRound && r.status === 'Active'
+        );
+        roundId = currentRound?.id;
+        console.log('Found roundId from session.rounds:', roundId);
+      }
+      
+      // If not found in session.rounds, get from API
+      if (!roundId) {
+        console.log('Getting roundId from API...');
+        const currentRound = await sessionService.getCurrentRound(sessionId);
+        roundId = currentRound.id;
+        console.log('Got roundId from API:', roundId);
+      }
+
+      if (!roundId) {
+        setError('No active round found. Please wait for the round to start.');
+        return;
+      }
+
+      const submitData = {
+        sessionId,
+        roundId,
+        content: newIdea.trim(),
+      };
+
+      await ideaService.submit(submitData);
       setNewIdea('');
+      // Reload session data to update idea count
+      loadSessionData();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to submit idea');
     } finally {

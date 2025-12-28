@@ -6,8 +6,8 @@ export default function Login() {
   const navigate = useNavigate();
   const { login, isLoading, error, clearError } = useAuthStore();
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    email: 'admin@brainstorming.com', // Test kullanıcısı
+    password: 'Admin123!', // Test şifresi
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -53,6 +53,20 @@ export default function Login() {
 
         {/* Login Card */}
         <div className="bg-white/95 backdrop-blur-lg rounded-3xl shadow-2xl p-8">
+          {/* Test User Info */}
+          <div className="mb-6 bg-blue-50 border-l-4 border-blue-500 text-blue-700 px-4 py-3 rounded-lg">
+            <div className="flex items-start">
+              <svg className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+              <div className="text-sm">
+                <p className="font-semibold mb-1">Test Kullanıcı Bilgileri:</p>
+                <p className="text-xs">Email: <span className="font-mono">admin@brainstorming.com</span></p>
+                <p className="text-xs">Şifre: <span className="font-mono">Admin123!</span></p>
+              </div>
+            </div>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
               <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded-lg">
@@ -84,7 +98,7 @@ export default function Login() {
                   value={formData.email}
                   onChange={handleChange}
                   className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-200"
-                  placeholder="you@example.com"
+                  placeholder="admin@brainstorming.com"
                 />
               </div>
             </div>

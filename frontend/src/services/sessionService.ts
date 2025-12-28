@@ -77,12 +77,18 @@ export const sessionService = {
   },
 
   async getRemainingTime(id: string): Promise<{ remainingSeconds: number }> {
-    const response = await api.get(`/sessions/${id}/remaining-time`);
-    return response.data;
+    const response = await api.get<ApiResponse<{ remainingSeconds: number }>>(`/sessions/${id}/remaining-time`);
+    if (!response.data.data) {
+      throw new Error(response.data.message || 'Failed to get remaining time');
+    }
+    return response.data.data;
   },
 
   async getStatus(id: string): Promise<{ status: string }> {
-    const response = await api.get(`/sessions/${id}/status`);
-    return response.data;
+    const response = await api.get<ApiResponse<{ status: string }>>(`/sessions/${id}/status`);
+    if (!response.data.data) {
+      throw new Error(response.data.message || 'Failed to get status');
+    }
+    return response.data.data;
   },
 };

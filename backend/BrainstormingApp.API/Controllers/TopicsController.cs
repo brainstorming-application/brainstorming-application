@@ -83,10 +83,10 @@ public class TopicsController : ControllerBase
     /// Change topic status
     /// </summary>
     [HttpPatch("{id}/status")]
-    public async Task<ActionResult<ApiResponse<TopicDetailDto>>> ChangeStatus(Guid id, [FromBody] TopicStatus status)
+    public async Task<ActionResult<ApiResponse<TopicDetailDto>>> ChangeStatus(Guid id, [FromBody] ChangeTopicStatusDto dto)
     {
         var userId = GetCurrentUserId();
-        var topic = await _topicService.ChangeStatusAsync(id, status, userId);
+        var topic = await _topicService.ChangeStatusAsync(id, dto.Status, userId);
         return Ok(ApiResponse<TopicDetailDto>.SuccessResponse(topic, "Topic status updated successfully"));
     }
 

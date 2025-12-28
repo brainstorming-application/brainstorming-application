@@ -44,8 +44,6 @@ export default function Register() {
       navigate('/dashboard');
     } catch (error: any) {
       console.error('Register error:', error);
-      console.error('Error response data:', error.response?.data);
-      // Error zaten authStore'da handle ediliyor, burada sadece log
     }
   };
 

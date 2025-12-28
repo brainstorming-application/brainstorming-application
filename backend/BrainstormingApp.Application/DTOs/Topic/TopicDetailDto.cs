@@ -28,3 +28,8 @@ public class UpdateTopicDto
     public string? Description { get; set; }
     public TopicStatus? Status { get; set; }
 }
+
+public class ChangeTopicStatusDto
+{
+    public TopicStatus Status { get; set; }
+}

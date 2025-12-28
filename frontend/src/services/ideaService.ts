@@ -43,12 +43,18 @@ export const ideaService = {
   },
 
   async canSubmit(roundId: string): Promise<{ canSubmit: boolean; currentCount: number; maxAllowed: number }> {
-    const response = await api.get(`/ideas/round/${roundId}/can-submit`);
-    return response.data;
+    const response = await api.get<ApiResponse<{ canSubmit: boolean; currentCount: number; maxAllowed: number }>>(`/ideas/round/${roundId}/can-submit`);
+    if (!response.data.data) {
+      throw new Error(response.data.message || 'Failed to check submit status');
+    }
+    return response.data.data;
   },
 
   async canSubmitToSession(sessionId: string): Promise<{ canSubmit: boolean }> {
-    const response = await api.get(`/ideas/session/${sessionId}/can-submit`);
-    return response.data;
+    const response = await api.get<ApiResponse<{ canSubmit: boolean }>>(`/ideas/session/${sessionId}/can-submit`);
+    if (!response.data.data) {
+      throw new Error(response.data.message || 'Failed to check submit status');
+    }
+    return response.data.data;
   },
 };

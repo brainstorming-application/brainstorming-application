@@ -3,8 +3,8 @@ import { Event, CreateEventRequest, EventStatus } from '../types';
 
 export const eventService = {
   async getAll(): Promise<Event[]> {
-    const response = await api.get<ApiResponse<Event[]>>('/events');
-    return response.data.data || [];
+    const response = await api.get<Event[]>('/events');
+    return response.data;
   },
 
   async getById(id: string): Promise<Event> {

@@ -1,15 +1,29 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Events from './pages/Events';
+import Topics from './pages/Topics';
 import Teams from './pages/Teams';
 import Sessions from './pages/Sessions';
+import Reports from './pages/Reports';
+import Settings from './pages/Settings';
 import BrainstormingRoom from './pages/BrainstormingRoom';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
+import { useAuthStore } from './store/authStore';
 
-function App() {
+function AppContent() {
+  const { token, checkAuth } = useAuthStore();
+
+  useEffect(() => {
+    // Sayfa yüklendiğinde token varsa authentication kontrolü yap
+    if (token) {
+      checkAuth();
+    }
+  }, []); // Sadece ilk render'da çalışsın
+
   return (
     <BrowserRouter>
       <Routes>
@@ -37,6 +51,16 @@ function App() {
           }
         />
         <Route
+          path="/topics"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Topics />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/teams"
           element={
             <ProtectedRoute>
@@ -57,6 +81,26 @@ function App() {
           }
         />
         <Route
+          path="/reports"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Reports />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Settings />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/session/:sessionId"
           element={
             <ProtectedRoute>
@@ -69,6 +113,10 @@ function App() {
       </Routes>
     </BrowserRouter>
   );
+}
+
+function App() {
+  return <AppContent />;
 }
 
 export default App;

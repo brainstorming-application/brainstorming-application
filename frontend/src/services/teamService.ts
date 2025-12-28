@@ -53,7 +53,10 @@ export const teamService = {
   },
 
   async validateSize(teamId: string): Promise<{ isValid: boolean; memberCount: number; minRequired: number; maxAllowed: number }> {
-    const response = await api.get(`/teams/${teamId}/validate-size`);
-    return response.data;
+    const response = await api.get<ApiResponse<{ isValid: boolean; memberCount: number; minRequired: number; maxAllowed: number }>>(`/teams/${teamId}/validate-size`);
+    if (!response.data.data) {
+      throw new Error(response.data.message || 'Failed to validate team size');
+    }
+    return response.data.data;
   },
 };

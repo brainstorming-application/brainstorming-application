@@ -200,6 +200,7 @@ export interface CreateSessionRequest {
 // Idea Types Extended
 export interface CreateIdeaRequest {
   sessionId: string;
+  roundId: string;
   content: string;
 }
 
