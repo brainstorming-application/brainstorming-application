@@ -205,6 +205,7 @@ export interface CreateSessionRequest {
 export interface CreateIdeaRequest {
   sessionId: string;
   content: string;
+  isAIGenerated?: boolean;
 }
 
 export interface UpdateIdeaRequest {

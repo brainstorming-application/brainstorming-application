@@ -216,10 +216,10 @@ class SessionNotifier extends StateNotifier<SessionState> {
     }
   }
 
-  Future<bool> submitIdea(String sessionId, String content) async {
+  Future<bool> submitIdea(String sessionId, String content, {bool isAIGenerated = false}) async {
     try {
       final idea = await _ideaService.createIdea(
-        CreateIdeaRequest(sessionId: sessionId, content: content),
+        CreateIdeaRequest(sessionId: sessionId, content: content, isAIGenerated: isAIGenerated),
       );
       state = state.copyWith(ideas: [...state.ideas, idea]);
       return true;

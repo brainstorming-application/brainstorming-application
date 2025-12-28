@@ -33,6 +33,9 @@ export default function BrainstormingRoom() {
   const [generatingAI, setGeneratingAI] = useState(false);
   const [analytics, setAnalytics] = useState<SessionAnalytics | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
+  const [isCurrentIdeaFromAI, setIsCurrentIdeaFromAI] = useState(false);
+  const [aiSummary, setAiSummary] = useState<{ summary: string; keyThemes: string[]; topIdeas: string[] } | null>(null);
+  const [generatingSummary, setGeneratingSummary] = useState(false);
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const canManage = user?.role === UserRole.EventManager || user?.role === UserRole.TeamLeader;
@@ -189,8 +192,13 @@ export default function BrainstormingRoom() {
 
     try {
       setSubmitting(true);
-      await ideaService.submit({ sessionId, content: newIdea.trim() });
+      await ideaService.submit({
+        sessionId,
+        content: newIdea.trim(),
+        isAIGenerated: isCurrentIdeaFromAI
+      });
       setNewIdea('');
+      setIsCurrentIdeaFromAI(false); // Reset the flag
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to submit idea');
     } finally {
@@ -218,7 +226,26 @@ export default function BrainstormingRoom() {
 
   const handleUseAISuggestion = (suggestion: string) => {
     setNewIdea(suggestion);
+    setIsCurrentIdeaFromAI(true); // Mark as AI-generated
     setShowAIPanel(false);
+  };
+
+  const handleGenerateSummary = async () => {
+    if (!sessionId) return;
+
+    try {
+      setGeneratingSummary(true);
+      const response = await chatgptService.generateSummary({ sessionId });
+      setAiSummary({
+        summary: response.summary,
+        keyThemes: response.keyThemes,
+        topIdeas: response.topIdeas
+      });
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to generate summary');
+    } finally {
+      setGeneratingSummary(false);
+    }
   };
 
   const handleAdvanceRound = async () => {
@@ -537,6 +564,84 @@ export default function BrainstormingRoom() {
                   <div className="text-xs text-gray-500">Participants</div>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* AI Summary for Completed Sessions */}
+          {isCompleted && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                  <svg className="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                  </svg>
+                  AI Session Summary
+                </h3>
+                {!aiSummary && (
+                  <button
+                    onClick={handleGenerateSummary}
+                    disabled={generatingSummary}
+                    className="flex items-center space-x-1 bg-purple-100 text-purple-700 px-3 py-1 rounded-lg hover:bg-purple-200 transition-all text-sm disabled:opacity-50"
+                  >
+                    {generatingSummary ? (
+                      <>
+                        <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>Generating...</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        <span>Generate Summary</span>
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+
+              {aiSummary ? (
+                <div className="space-y-4">
+                  <div className="p-4 bg-purple-50 rounded-lg">
+                    <h4 className="font-medium text-purple-900 mb-2">Summary</h4>
+                    <p className="text-gray-700">{aiSummary.summary}</p>
+                  </div>
+
+                  {aiSummary.keyThemes.length > 0 && (
+                    <div>
+                      <h4 className="font-medium text-gray-900 mb-2">Key Themes</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {aiSummary.keyThemes.map((theme, idx) => (
+                          <span key={idx} className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm">
+                            {theme}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {aiSummary.topIdeas.length > 0 && (
+                    <div>
+                      <h4 className="font-medium text-gray-900 mb-2">Top Ideas</h4>
+                      <ul className="space-y-2">
+                        {aiSummary.topIdeas.map((idea, idx) => (
+                          <li key={idx} className="flex items-start">
+                            <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center bg-green-100 text-green-700 rounded-full text-xs font-medium mr-2">
+                              {idx + 1}
+                            </span>
+                            <span className="text-gray-700">{idea}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-sm">Click "Generate Summary" to get an AI-powered analysis of this brainstorming session.</p>
+              )}
             </div>
           )}
 

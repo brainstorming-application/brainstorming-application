@@ -1,7 +1,21 @@
 {
   "permissions": {
     "allow": [
-      "Bash(dotnet build:*)"
+      "Bash(dotnet build:*)",
+      "Bash(/mnt/c/Program Files/dotnet/dotnet.exe build:*)",
+      "Bash(cmd.exe /c \"cd C:\\Users\\Asus\\Desktop\\x\\brainstorming-application\\backend && dotnet build\")",
+      "Bash(npm install)",
+      "Bash(npm run build:*)",
+      "Bash(curl:*)",
+      "Bash(cat:*)",
+      "Bash(cmd.exe /c \"netstat -an | findstr :5081\")",
+      "Bash(cmd.exe /c \"netstat -an | findstr :5173\")",
+      "Bash(cmd.exe /c \"flutter --version\")",
+      "Bash(cmd.exe /c \"cd C:\\Users\\Asus\\Desktop\\x\\brainstorming-application && flutter create --org com.brainstorming --project-name brainstorming_app mobile\")",
+      "Bash(cmd.exe:*)",
+      "Bash(flutter analyze:*)",
+      "Bash(dotnet run)",
+      "Bash(npm run dev:*)"
     ]
   }
 }

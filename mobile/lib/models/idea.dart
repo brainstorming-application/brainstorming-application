@@ -94,16 +94,19 @@ class Idea extends Equatable {
 class CreateIdeaRequest {
   final String sessionId;
   final String content;
+  final bool isAIGenerated;
 
   const CreateIdeaRequest({
     required this.sessionId,
     required this.content,
+    this.isAIGenerated = false,
   });
 
   Map<String, dynamic> toJson() {
     return {
       'sessionId': sessionId,
       'content': content,
+      'isAIGenerated': isAIGenerated,
     };
   }
 }

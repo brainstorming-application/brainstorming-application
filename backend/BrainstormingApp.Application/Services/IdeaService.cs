@@ -96,7 +96,7 @@ public class IdeaService : IIdeaService
             UserId = userId,
             Content = dto.Content.Trim(),
             OrderInRound = userIdeaCount + 1, // 1, 2, or 3
-            IsAIGenerated = false,
+            IsAIGenerated = dto.IsAIGenerated,
             SubmittedAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow

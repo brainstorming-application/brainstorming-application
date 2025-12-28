@@ -36,6 +36,12 @@ class _BrainstormingRoomScreenState extends ConsumerState<BrainstormingRoomScree
   bool _generatingAI = false;
   List<String> _aiSuggestions = [];
   String? _aiError;
+  bool _isCurrentIdeaFromAI = false;
+
+  // AI Summary State
+  bool _generatingSummary = false;
+  String? _aiSummary;
+  String? _summaryError;
 
   @override
   void initState() {
@@ -407,6 +413,102 @@ class _BrainstormingRoomScreenState extends ConsumerState<BrainstormingRoomScree
                 ],
               ),
             ),
+
+          // AI Summary Section (for completed sessions)
+          if (session.session.isCompleted)
+            Container(
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: MediaQuery.of(context).padding.bottom + 16,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                border: Border(
+                  top: BorderSide(color: AppColors.border),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.psychology, color: AppColors.info, size: 24),
+                      const SizedBox(width: 8),
+                      Text(
+                        'AI Session Summary',
+                        style: AppTextStyles.labelLarge.copyWith(
+                          color: AppColors.textPrimary,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const Spacer(),
+                      if (_generatingSummary)
+                        SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.info,
+                          ),
+                        )
+                      else if (_aiSummary == null)
+                        ElevatedButton.icon(
+                          onPressed: _generateAISummary,
+                          icon: const Icon(Icons.auto_awesome, size: 16),
+                          label: const Text('Generate'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.info,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          ),
+                        ),
+                    ],
+                  ),
+                  if (_summaryError != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: Text(
+                        _summaryError!,
+                        style: TextStyle(color: AppColors.error, fontSize: 12),
+                      ),
+                    ),
+                  if (_aiSummary != null) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.info.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.info.withOpacity(0.2)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.summarize, size: 16, color: AppColors.info),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Summary',
+                                style: AppTextStyles.labelLarge.copyWith(color: AppColors.info),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            _aiSummary!,
+                            style: AppTextStyles.bodyMedium,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
         ],
       ),
     );
@@ -629,6 +731,7 @@ class _BrainstormingRoomScreenState extends ConsumerState<BrainstormingRoomScree
     _ideaController.text = suggestion;
     setState(() {
       _showAIPanel = false;
+      _isCurrentIdeaFromAI = true;
     });
   }
 
@@ -639,12 +742,36 @@ class _BrainstormingRoomScreenState extends ConsumerState<BrainstormingRoomScree
     final success = await ref.read(sessionProvider.notifier).submitIdea(
           widget.sessionId,
           content,
+          isAIGenerated: _isCurrentIdeaFromAI,
         );
 
     if (success) {
       _ideaController.clear();
+      setState(() {
+        _isCurrentIdeaFromAI = false;
+      });
       // Refresh ideas
       await ref.read(sessionProvider.notifier).loadIdeas(widget.sessionId);
+    }
+  }
+
+  Future<void> _generateAISummary() async {
+    setState(() {
+      _generatingSummary = true;
+      _summaryError = null;
+    });
+
+    try {
+      final summary = await _chatGPTService.generateSummary(widget.sessionId);
+      setState(() {
+        _aiSummary = summary;
+        _generatingSummary = false;
+      });
+    } catch (e) {
+      setState(() {
+        _summaryError = e.toString();
+        _generatingSummary = false;
+      });
     }
   }
 }

@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: brainstorming-api
+    ports:
+      - "5081:5081"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5081
+    networks:
+      - brainstorming-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=http://localhost:5081/api
+        - VITE_HUB_URL=http://localhost:5081/hubs/brainstorming
+    container_name: brainstorming-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - brainstorming-network
+    restart: unless-stopped
+
+networks:
+  brainstorming-network:
+    driver: bridge
