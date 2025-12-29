@@ -8,27 +8,24 @@
     "net8.0": []
   },
   "packageFolders": {
-    "C:\\Users\\Asus\\.nuget\\packages\\": {}
+    "C:\\Users\\Bilal\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "c:\\Users\\Asus\\Desktop\\x\\brainstorming-application\\backend\\BrainstormingApp.Core\\BrainstormingApp.Core.csproj",
+      "projectUniqueName": "C:\\Users\\Bilal\\Desktop\\brainstorming-mobile\\brainstorming-application\\backend\\BrainstormingApp.Core\\BrainstormingApp.Core.csproj",
       "projectName": "BrainstormingApp.Core",
-      "projectPath": "c:\\Users\\Asus\\Desktop\\x\\brainstorming-application\\backend\\BrainstormingApp.Core\\BrainstormingApp.Core.csproj",
-      "packagesPath": "C:\\Users\\Asus\\.nuget\\packages\\",
-      "outputPath": "c:\\Users\\Asus\\Desktop\\x\\brainstorming-application\\backend\\BrainstormingApp.Core\\obj\\",
+      "projectPath": "C:\\Users\\Bilal\\Desktop\\brainstorming-mobile\\brainstorming-application\\backend\\BrainstormingApp.Core\\BrainstormingApp.Core.csproj",
+      "packagesPath": "C:\\Users\\Bilal\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Bilal\\Desktop\\brainstorming-mobile\\brainstorming-application\\backend\\BrainstormingApp.Core\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\Asus\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        "C:\\Users\\Bilal\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
       ],
       "sources": {
-        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-        "C:\\Program Files\\dotnet\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -46,7 +43,8 @@
         "enableAudit": "true",
         "auditLevel": "low",
         "auditMode": "direct"
-      }
+      },
+      "SdkAnalysisLevel": "9.0.300"
     },
     "frameworks": {
       "net8.0": {
@@ -62,12 +60,26 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
+        "downloadDependencies": [
+          {
+            "name": "Microsoft.AspNetCore.App.Ref",
+            "version": "[8.0.21, 8.0.21]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Ref",
+            "version": "[8.0.21, 8.0.21]"
+          },
+          {
+            "name": "Microsoft.WindowsDesktop.App.Ref",
+            "version": "[8.0.21, 8.0.21]"
+          }
+        ],
         "frameworkReferences": {
           "Microsoft.NETCore.App": {
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.403/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.306/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

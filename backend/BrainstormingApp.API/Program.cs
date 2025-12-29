@@ -58,10 +58,11 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// Configure Database - Using InMemory for development
+// Configure Database - Using PostgreSQL
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseInMemoryDatabase("BrainstormingDB"));
-    // options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(connectionString));
 
 // Configure JWT Authentication
 var jwtSecret = builder.Configuration["JWT:Secret"]
@@ -150,11 +151,25 @@ builder.Services.AddHttpClient<IChatGPTService, ChatGPTService>(client =>
 
 var app = builder.Build();
 
-// Seed test data for development
+// Apply migrations and seed test data for development
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    await SeedTestData(context);
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+    try
+    {
+        logger.LogInformation("Applying database migrations...");
+        await context.Database.MigrateAsync();
+        logger.LogInformation("Database migrations applied successfully.");
+
+        await SeedTestData(context);
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "An error occurred while migrating the database.");
+        throw;
+    }
 }
 
 // Global error handling middleware

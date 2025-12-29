@@ -693,7 +693,7 @@
         },
         "runtime": {
           "BrainstormingApp.Application.dll": {
-            "assemblyVersion": "1.0.0",
+            "assemblyVersion": "1.0.0.0",
             "fileVersion": "1.0.0.0"
           }
         }
@@ -701,7 +701,7 @@
       "BrainstormingApp.Core/1.0.0": {
         "runtime": {
           "BrainstormingApp.Core.dll": {
-            "assemblyVersion": "1.0.0",
+            "assemblyVersion": "1.0.0.0",
             "fileVersion": "1.0.0.0"
           }
         }
@@ -714,7 +714,7 @@
         },
         "runtime": {
           "BrainstormingApp.Infrastructure.dll": {
-            "assemblyVersion": "1.0.0",
+            "assemblyVersion": "1.0.0.0",
             "fileVersion": "1.0.0.0"
           }
         }

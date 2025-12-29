@@ -1,8 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "ZYAThjFx1Ss=",
+  "dgSpecHash": "TNqeoP7dmGg=",
   "success": true,
-  "projectFilePath": "C:\\Users\\Asus\\Desktop\\x\\brainstorming-application\\backend\\BrainstormingApp.Core\\BrainstormingApp.Core.csproj",
-  "expectedPackageFiles": [],
+  "projectFilePath": "C:\\Users\\Bilal\\Desktop\\brainstorming-mobile\\brainstorming-application\\backend\\BrainstormingApp.Core\\BrainstormingApp.Core.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Bilal\\.nuget\\packages\\microsoft.netcore.app.ref\\8.0.21\\microsoft.netcore.app.ref.8.0.21.nupkg.sha512",
+    "C:\\Users\\Bilal\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.21\\microsoft.windowsdesktop.app.ref.8.0.21.nupkg.sha512",
+    "C:\\Users\\Bilal\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\8.0.21\\microsoft.aspnetcore.app.ref.8.0.21.nupkg.sha512"
+  ],
   "logs": []
 }

@@ -1,6 +1,24 @@
-version: '3.8'
-
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: brainstorming-db
+    environment:
+      POSTGRES_DB: brainstorming_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - brainstorming-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d brainstorming_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   backend:
     build:
       context: ./backend
@@ -11,6 +29,10 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5081
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=brainstorming_db;Username=postgres;Password=postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
     networks:
       - brainstorming-network
     restart: unless-stopped
@@ -34,3 +56,6 @@ services:
 networks:
   brainstorming-network:
     driver: bridge
+
+volumes:
+  postgres_data:

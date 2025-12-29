@@ -33,3 +33,15 @@ C:\Users\Asus\Desktop\x\brainstorming-application\backend\BrainstormingApp.Core\
 C:\Users\Asus\Desktop\x\brainstorming-application\backend\BrainstormingApp.Core\obj\Debug\net8.0\refint\BrainstormingApp.Core.dll
 C:\Users\Asus\Desktop\x\brainstorming-application\backend\BrainstormingApp.Core\obj\Debug\net8.0\BrainstormingApp.Core.pdb
 C:\Users\Asus\Desktop\x\brainstorming-application\backend\BrainstormingApp.Core\obj\Debug\net8.0\ref\BrainstormingApp.Core.dll
+C:\Users\Bilal\Desktop\brainstorming-mobile\brainstorming-application\backend\BrainstormingApp.Core\bin\Debug\net8.0\BrainstormingApp.Core.deps.json
+C:\Users\Bilal\Desktop\brainstorming-mobile\brainstorming-application\backend\BrainstormingApp.Core\bin\Debug\net8.0\BrainstormingApp.Core.dll
+C:\Users\Bilal\Desktop\brainstorming-mobile\brainstorming-application\backend\BrainstormingApp.Core\bin\Debug\net8.0\BrainstormingApp.Core.pdb
+C:\Users\Bilal\Desktop\brainstorming-mobile\brainstorming-application\backend\BrainstormingApp.Core\obj\Debug\net8.0\BrainstormingApp.Core.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Bilal\Desktop\brainstorming-mobile\brainstorming-application\backend\BrainstormingApp.Core\obj\Debug\net8.0\BrainstormingApp.Core.AssemblyInfoInputs.cache
+C:\Users\Bilal\Desktop\brainstorming-mobile\brainstorming-application\backend\BrainstormingApp.Core\obj\Debug\net8.0\BrainstormingApp.Core.AssemblyInfo.cs
+C:\Users\Bilal\Desktop\brainstorming-mobile\brainstorming-application\backend\BrainstormingApp.Core\obj\Debug\net8.0\BrainstormingApp.Core.csproj.CoreCompileInputs.cache
+C:\Users\Bilal\Desktop\brainstorming-mobile\brainstorming-application\backend\BrainstormingApp.Core\obj\Debug\net8.0\BrainstormingApp.Core.sourcelink.json
+C:\Users\Bilal\Desktop\brainstorming-mobile\brainstorming-application\backend\BrainstormingApp.Core\obj\Debug\net8.0\BrainstormingApp.Core.dll
+C:\Users\Bilal\Desktop\brainstorming-mobile\brainstorming-application\backend\BrainstormingApp.Core\obj\Debug\net8.0\refint\BrainstormingApp.Core.dll
+C:\Users\Bilal\Desktop\brainstorming-mobile\brainstorming-application\backend\BrainstormingApp.Core\obj\Debug\net8.0\BrainstormingApp.Core.pdb
+C:\Users\Bilal\Desktop\brainstorming-mobile\brainstorming-application\backend\BrainstormingApp.Core\obj\Debug\net8.0\ref\BrainstormingApp.Core.dll
