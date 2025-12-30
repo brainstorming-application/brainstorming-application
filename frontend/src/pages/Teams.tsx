@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { teamService } from '../services/teamService';
 import { eventService } from '../services/eventService';
-import { Team, TeamMember, Event, UserRole } from '../types';
+import { authService } from '../services/authService';
+import { Team, TeamMember, Event, UserRole, User } from '../types'; // User eklendi
 import { useAuthStore } from '../store/authStore';
 
 export default function Teams() {
@@ -18,11 +19,14 @@ export default function Teams() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Modals
+  // Modals & Form Data
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [formData, setFormData] = useState({ name: '', description: '', maxMembers: 6 });
-  const [newMemberEmail, setNewMemberEmail] = useState('');
+
+  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState('');
+  const [loadingUsers, setLoadingUsers] = useState(false);
 
   useEffect(() => {
     loadEvents();
@@ -39,7 +43,7 @@ export default function Teams() {
       loadMembers(selectedTeam.id);
     }
   }, [selectedTeam]);
-
+  
   const loadEvents = async () => {
     try {
       const data = await eventService.getAll();
@@ -74,6 +78,25 @@ export default function Teams() {
     } catch (err: any) {
       console.error('Failed to load members:', err);
     }
+  };
+
+  const openAddMemberModal = async () => {
+    if (!selectedTeam) return;
+    setShowAddMemberModal(true);
+    setLoadingUsers(true);
+    try {
+      const users = await authService.getAllUsers();
+      setAllUsers(users);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to load users');
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+  const getAvailableUsers = () => {
+    const currentMemberIds = members.map((m) => m.userId);
+    return allUsers.filter((u) => !currentMemberIds.includes(u.id));
   };
 
   const handleCreateTeam = async (e: React.FormEvent) => {
@@ -112,15 +135,14 @@ export default function Teams() {
 
   const handleAddMember = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedTeam || !newMemberEmail) return;
+    if (!selectedTeam || !selectedUserId) return;
 
     try {
-      // In a real app, you'd search for user by email first
-      // For now, we'll assume userId is provided
-      await teamService.addMember(selectedTeam.id, { userId: newMemberEmail });
+      await teamService.addMember(selectedTeam.id, { userId: selectedUserId });
+      // Üye listesini yenile
       await loadMembers(selectedTeam.id);
       setShowAddMemberModal(false);
-      setNewMemberEmail('');
+      setSelectedUserId('');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to add member');
     }
@@ -225,10 +247,10 @@ export default function Teams() {
                     key={team.id}
                     onClick={() => setSelectedTeam(team)}
                     className={`bg-white rounded-xl shadow-sm p-4 cursor-pointer transition-all border-2 ${
-                      selectedTeam?.id === team.id
-                        ? 'border-indigo-500 shadow-lg'
-                        : 'border-transparent hover:border-gray-200'
-                    }`}
+    selectedTeam?.id === team.id
+        ? 'border-indigo-500 shadow-lg'
+        : 'border-transparent hover:border-gray-200'
+}`}
                   >
                     <div className="flex items-center justify-between">
                       <h3 className="font-semibold text-gray-900">{team.name}</h3>
@@ -260,8 +282,9 @@ export default function Teams() {
                     </div>
                     {canManageTeams && (
                       <div className="flex items-center gap-2">
+                        {/* Add Member Butonu Güncellendi */}
                         <button
-                          onClick={() => setShowAddMemberModal(true)}
+                          onClick={openAddMemberModal}
                           className="px-3 py-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors text-sm font-medium"
                         >
                           Add Member
@@ -287,10 +310,10 @@ export default function Teams() {
                       </span>
                     </div>
                     <div className={`text-sm px-2 py-1 rounded-full ${
-                      members.length >= 3 && members.length <= 6
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-yellow-100 text-yellow-700'
-                    }`}>
+    members.length >= 3 && members.length <= 6
+        ? 'bg-green-100 text-green-700'
+        : 'bg-yellow-100 text-yellow-700'
+}`}>
                       {members.length >= 3 && members.length <= 6 ? 'Ready for 6-3-5' : 'Need 3-6 members'}
                     </div>
                   </div>
@@ -412,40 +435,72 @@ export default function Teams() {
         </div>
       )}
 
-      {/* Add Member Modal */}
-      {showAddMemberModal && (
+      {/* Add Member Modal (Implemented) */}
+      {showAddMemberModal && selectedTeam && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Add Team Member</h3>
-            <form onSubmit={handleAddMember} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">User ID</label>
-                <input
-                  type="text"
-                  required
-                  value={newMemberEmail}
-                  onChange={(e) => setNewMemberEmail(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  placeholder="Enter user ID"
-                />
-                <p className="text-xs text-gray-500 mt-1">Enter the user's ID to add them to the team</p>
-              </div>
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="submit"
-                  className="flex-1 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-all font-medium"
-                >
-                  Add Member
-                </button>
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Add Member to {selectedTeam.name}</h3>
+            <p className="text-sm text-gray-500 mb-4">
+              Current Capacity: {members.length} / {selectedTeam.maxMembers} members
+            </p>
+
+            {loadingUsers ? (
+              <div className="text-center py-4 text-indigo-600">Loading available users...</div>
+            ) : getAvailableUsers().length === 0 ? (
+              <div className="text-center py-4 bg-gray-50 rounded-lg mb-4">
+                <p className="text-gray-500">No available users found to add.</p>
+                <p className="text-xs text-gray-400 mt-1">All users might already be in this team.</p>
                 <button
                   type="button"
-                  onClick={() => setShowAddMemberModal(false)}
-                  className="flex-1 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                  onClick={() => {
+                    setShowAddMemberModal(false);
+                    setSelectedUserId('');
+                  }}
+                  className="mt-4 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
                 >
                   Cancel
                 </button>
               </div>
-            </form>
+            ) : (
+              <form onSubmit={handleAddMember} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Select User</label>
+                  <select
+                    value={selectedUserId}
+                    onChange={(e) => setSelectedUserId(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white"
+                    required
+                  >
+                    <option value="">-- Choose a user --</option>
+                    {getAvailableUsers().map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.firstName} {u.lastName} ({u.email})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="submit"
+                    disabled={!selectedUserId}
+                    className="flex-1 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Add Member
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowAddMemberModal(false);
+                      setSelectedUserId('');
+                    }}
+                    className="flex-1 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}
