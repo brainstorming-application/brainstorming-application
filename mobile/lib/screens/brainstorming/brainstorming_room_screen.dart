@@ -43,6 +43,10 @@ class _BrainstormingRoomScreenState extends ConsumerState<BrainstormingRoomScree
   String? _aiSummary;
   String? _summaryError;
 
+  // Track previous session status for detecting changes
+  SessionStatus? _previousStatus;
+  bool _hasShownCompletedDialog = false;
+
   @override
   void initState() {
     super.initState();
@@ -84,6 +88,140 @@ class _BrainstormingRoomScreenState extends ConsumerState<BrainstormingRoomScree
     super.dispose();
   }
 
+  void _handleSessionStatusChange(SessionStatus currentStatus) {
+    // Skip if this is the first build (no previous status)
+    if (_previousStatus == null) {
+      _previousStatus = currentStatus;
+      return;
+    }
+
+    // Detect status change to completed
+    if (currentStatus == SessionStatus.completed &&
+        _previousStatus != SessionStatus.completed &&
+        !_hasShownCompletedDialog) {
+      _hasShownCompletedDialog = true;
+      _timer?.cancel();
+
+      // Show dialog after build completes
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _showSessionCompletedDialog();
+        }
+      });
+    }
+
+    // Detect status change to paused
+    if (currentStatus == SessionStatus.paused &&
+        _previousStatus == SessionStatus.inProgress) {
+      _timer?.cancel();
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Row(
+                children: [
+                  Icon(Icons.pause_circle, color: Colors.white),
+                  SizedBox(width: 8),
+                  Text('Session has been paused'),
+                ],
+              ),
+              backgroundColor: AppColors.warning,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      });
+    }
+
+    // Detect status change to in progress (started or resumed)
+    if (currentStatus == SessionStatus.inProgress &&
+        _previousStatus != SessionStatus.inProgress) {
+      final session = ref.read(currentSessionProvider);
+      if (session != null) {
+        _startTimer(session.session.roundDurationMinutes * 60);
+      }
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.play_circle, color: Colors.white),
+                  const SizedBox(width: 8),
+                  Text(_previousStatus == SessionStatus.paused
+                      ? 'Session resumed!'
+                      : 'Session started!'),
+                ],
+              ),
+              backgroundColor: AppColors.success,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      });
+    }
+
+    _previousStatus = currentStatus;
+  }
+
+  void _showSessionCompletedDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        icon: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.success.withOpacity(0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(Icons.check_circle, color: AppColors.success, size: 48),
+        ),
+        title: const Text(
+          'Session Completed!',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'The brainstorming session has ended.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'You can now view the session summary and all ideas.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              GoRouter.of(context).go('/sessions');
+            },
+            child: const Text('Go to Sessions'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.success,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('View Summary'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final sessionState = ref.watch(sessionProvider);
@@ -109,6 +247,9 @@ class _BrainstormingRoomScreenState extends ConsumerState<BrainstormingRoomScree
         ),
       );
     }
+
+    // Detect session status changes and show dialogs
+    _handleSessionStatusChange(session.session.status);
 
     // EventManager and TeamLeader can control session
     final canControlSession = user?.role == UserRole.teamLeader || user?.role == UserRole.eventManager;

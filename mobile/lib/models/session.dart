@@ -30,6 +30,30 @@ class BrainstormingSession extends Equatable {
   bool get isCompleted => status == SessionStatus.completed;
   bool get canStart => status == SessionStatus.notStarted;
 
+  BrainstormingSession copyWith({
+    String? id,
+    String? teamId,
+    String? topicId,
+    SessionStatus? status,
+    int? currentRound,
+    int? totalRounds,
+    int? roundDurationMinutes,
+    DateTime? startedAt,
+    DateTime? endedAt,
+  }) {
+    return BrainstormingSession(
+      id: id ?? this.id,
+      teamId: teamId ?? this.teamId,
+      topicId: topicId ?? this.topicId,
+      status: status ?? this.status,
+      currentRound: currentRound ?? this.currentRound,
+      totalRounds: totalRounds ?? this.totalRounds,
+      roundDurationMinutes: roundDurationMinutes ?? this.roundDurationMinutes,
+      startedAt: startedAt ?? this.startedAt,
+      endedAt: endedAt ?? this.endedAt,
+    );
+  }
+
   factory BrainstormingSession.fromJson(Map<String, dynamic> json) {
     return BrainstormingSession(
       id: json['id'] ?? '',
@@ -147,6 +171,26 @@ class SessionDetail extends Equatable {
           [],
       totalIdeas: json['totalIdeas'] ?? 0,
       participantCount: json['participantCount'] ?? 0,
+    );
+  }
+
+  SessionDetail copyWith({
+    BrainstormingSession? session,
+    String? teamName,
+    String? topicTitle,
+    String? topicDescription,
+    List<Round>? rounds,
+    int? totalIdeas,
+    int? participantCount,
+  }) {
+    return SessionDetail(
+      session: session ?? this.session,
+      teamName: teamName ?? this.teamName,
+      topicTitle: topicTitle ?? this.topicTitle,
+      topicDescription: topicDescription ?? this.topicDescription,
+      rounds: rounds ?? this.rounds,
+      totalIdeas: totalIdeas ?? this.totalIdeas,
+      participantCount: participantCount ?? this.participantCount,
     );
   }
 

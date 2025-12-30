@@ -1,6 +1,11 @@
 class ApiConstants {
-  static const String baseUrl = 'http://10.0.2.2:5081/api'; // Android emulator
+  // For Android emulator:
+  static const String baseUrl = 'http://10.0.2.2:5081/api';
   static const String hubUrl = 'http://10.0.2.2:5081/hubs/brainstorming';
+
+  // For Web/Windows/Physical device, use:
+  // static const String baseUrl = 'http://localhost:5081/api';
+  // static const String hubUrl = 'http://localhost:5081/hubs/brainstorming';
 
   // For physical device, use your computer's IP address:
   // static const String baseUrl = 'http://192.168.1.x:5081/api';

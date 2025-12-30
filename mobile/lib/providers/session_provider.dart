@@ -55,8 +55,12 @@ class SessionNotifier extends StateNotifier<SessionState> {
   final IdeaService _ideaService;
   final SignalRService _signalRService;
 
-  StreamSubscription? _sessionSubscription;
-  StreamSubscription? _roundSubscription;
+  StreamSubscription? _sessionStartedSubscription;
+  StreamSubscription? _sessionPausedSubscription;
+  StreamSubscription? _sessionResumedSubscription;
+  StreamSubscription? _sessionCompletedSubscription;
+  StreamSubscription? _roundStartedSubscription;
+  StreamSubscription? _roundEndedSubscription;
   StreamSubscription? _ideaSubscription;
   StreamSubscription? _timerSubscription;
 
@@ -242,32 +246,124 @@ class SessionNotifier extends StateNotifier<SessionState> {
   }
 
   void _subscribeToEvents() {
-    _sessionSubscription = _signalRService.onSessionUpdated.listen((session) {
-      if (state.currentSession?.session.id == session.id) {
-        loadSession(session.id);
+    // Session Started - reload session to get updated state
+    _sessionStartedSubscription = _signalRService.onSessionStarted.listen((session) {
+      print('Provider: SessionStarted received for ${session.id}');
+      print('Provider: Current session id: ${state.currentSession?.session.id}');
+      // Update if we have a current session (we're in the room, so update regardless of ID match)
+      if (state.currentSession != null) {
+        final updatedSession = state.currentSession!.copyWith(session: session);
+        state = state.copyWith(currentSession: updatedSession);
+        // Also reload to get full details
+        loadSession(state.currentSession!.session.id);
       }
     });
 
-    _roundSubscription = _signalRService.onRoundStarted.listen((round) {
+    // Session Paused
+    _sessionPausedSubscription = _signalRService.onSessionPaused.listen((session) {
+      print('Provider: SessionPaused received for ${session.id}');
+      if (state.currentSession != null) {
+        final updatedSession = state.currentSession!.copyWith(session: session);
+        state = state.copyWith(currentSession: updatedSession);
+      }
+    });
+
+    // Session Resumed
+    _sessionResumedSubscription = _signalRService.onSessionResumed.listen((session) {
+      print('Provider: SessionResumed received for ${session.id}');
+      if (state.currentSession != null) {
+        final updatedSession = state.currentSession!.copyWith(session: session);
+        state = state.copyWith(currentSession: updatedSession);
+      }
+    });
+
+    // Session Completed
+    _sessionCompletedSubscription = _signalRService.onSessionCompleted.listen((session) {
+      print('Provider: SessionCompleted received for ${session.id}');
+      if (state.currentSession != null) {
+        final updatedSession = state.currentSession!.copyWith(session: session);
+        state = state.copyWith(currentSession: updatedSession);
+        // Also stop timer if running
+        print('Provider: Session marked as completed');
+      }
+    });
+
+    // Round Started - backend sends int (round number)
+    _roundStartedSubscription = _signalRService.onRoundStarted.listen((roundNumber) {
+      print('Provider: RoundStarted received: $roundNumber');
+      if (state.currentSession != null) {
+        // Update current round number
+        final updatedSessionData = state.currentSession!.session.copyWith(
+          currentRound: roundNumber,
+        );
+        final updatedSession = state.currentSession!.copyWith(session: updatedSessionData);
+        state = state.copyWith(currentSession: updatedSession);
+        // Reload full session data
+        loadSession(state.currentSession!.session.id);
+      }
+    });
+
+    // Round Ended
+    _roundEndedSubscription = _signalRService.onRoundEnded.listen((roundNumber) {
+      print('Provider: RoundEnded received: $roundNumber');
+      // Round ended, may want to reload session
       if (state.currentSession != null) {
         loadSession(state.currentSession!.session.id);
       }
     });
 
+    // Idea Submitted
     _ideaSubscription = _signalRService.onIdeaSubmitted.listen((idea) {
+      print('Provider: IdeaSubmitted received: ${idea.content}');
       if (idea.sessionId == state.currentSession?.session.id) {
-        state = state.copyWith(ideas: [...state.ideas, idea]);
+        // Update ideas list
+        final updatedIdeas = [...state.ideas, idea];
+
+        // Update ideasByRound list
+        final updatedIdeasByRound = List<IdeasByRound>.from(state.ideasByRound);
+        final roundIndex = updatedIdeasByRound.indexWhere(
+          (r) => r.roundNumber == idea.roundNumber,
+        );
+
+        if (roundIndex >= 0) {
+          // Add to existing round
+          final existingRound = updatedIdeasByRound[roundIndex];
+          updatedIdeasByRound[roundIndex] = IdeasByRound(
+            roundNumber: existingRound.roundNumber,
+            roundId: existingRound.roundId,
+            ideas: [...existingRound.ideas, idea],
+          );
+        } else {
+          // Create new round entry
+          updatedIdeasByRound.add(IdeasByRound(
+            roundNumber: idea.roundNumber ?? 1,
+            roundId: idea.roundId,
+            ideas: [idea],
+          ));
+          // Sort by round number
+          updatedIdeasByRound.sort((a, b) => a.roundNumber.compareTo(b.roundNumber));
+        }
+
+        state = state.copyWith(
+          ideas: updatedIdeas,
+          ideasByRound: updatedIdeasByRound,
+        );
       }
     });
 
+    // Timer Update
     _timerSubscription = _signalRService.onTimerUpdate.listen((seconds) {
       state = state.copyWith(remainingSeconds: seconds);
     });
   }
 
   void _unsubscribeFromEvents() {
-    _sessionSubscription?.cancel();
-    _roundSubscription?.cancel();
+    _sessionStartedSubscription?.cancel();
+    _sessionPausedSubscription?.cancel();
+    _sessionResumedSubscription?.cancel();
+    _sessionCompletedSubscription?.cancel();
+    _roundStartedSubscription?.cancel();
+    _roundEndedSubscription?.cancel();
     _ideaSubscription?.cancel();
     _timerSubscription?.cancel();
   }

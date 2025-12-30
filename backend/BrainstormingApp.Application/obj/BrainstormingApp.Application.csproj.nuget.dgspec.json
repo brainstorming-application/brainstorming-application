@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Asus\\Desktop\\x\\brainstorming-application\\backend\\BrainstormingApp.Application\\BrainstormingApp.Application.csproj": {}
+    "c:\\Users\\Asus\\Desktop\\x\\brainstorming-application\\backend\\BrainstormingApp.Application\\BrainstormingApp.Application.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Asus\\Desktop\\x\\brainstorming-application\\backend\\BrainstormingApp.Application\\BrainstormingApp.Application.csproj": {
+    "c:\\Users\\Asus\\Desktop\\x\\brainstorming-application\\backend\\BrainstormingApp.Application\\BrainstormingApp.Application.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Asus\\Desktop\\x\\brainstorming-application\\backend\\BrainstormingApp.Application\\BrainstormingApp.Application.csproj",
+        "projectUniqueName": "c:\\Users\\Asus\\Desktop\\x\\brainstorming-application\\backend\\BrainstormingApp.Application\\BrainstormingApp.Application.csproj",
         "projectName": "BrainstormingApp.Application",
-        "projectPath": "C:\\Users\\Asus\\Desktop\\x\\brainstorming-application\\backend\\BrainstormingApp.Application\\BrainstormingApp.Application.csproj",
+        "projectPath": "c:\\Users\\Asus\\Desktop\\x\\brainstorming-application\\backend\\BrainstormingApp.Application\\BrainstormingApp.Application.csproj",
         "packagesPath": "C:\\Users\\Asus\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Asus\\Desktop\\x\\brainstorming-application\\backend\\BrainstormingApp.Application\\obj\\",
+        "outputPath": "c:\\Users\\Asus\\Desktop\\x\\brainstorming-application\\backend\\BrainstormingApp.Application\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Asus\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -29,8 +29,8 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "C:\\Users\\Asus\\Desktop\\x\\brainstorming-application\\backend\\BrainstormingApp.Core\\BrainstormingApp.Core.csproj": {
-                "projectPath": "C:\\Users\\Asus\\Desktop\\x\\brainstorming-application\\backend\\BrainstormingApp.Core\\BrainstormingApp.Core.csproj"
+              "c:\\Users\\Asus\\Desktop\\x\\brainstorming-application\\backend\\BrainstormingApp.Core\\BrainstormingApp.Core.csproj": {
+                "projectPath": "c:\\Users\\Asus\\Desktop\\x\\brainstorming-application\\backend\\BrainstormingApp.Core\\BrainstormingApp.Core.csproj"
               }
             }
           }
@@ -83,14 +83,14 @@
         }
       }
     },
-    "C:\\Users\\Asus\\Desktop\\x\\brainstorming-application\\backend\\BrainstormingApp.Core\\BrainstormingApp.Core.csproj": {
+    "c:\\Users\\Asus\\Desktop\\x\\brainstorming-application\\backend\\BrainstormingApp.Core\\BrainstormingApp.Core.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Asus\\Desktop\\x\\brainstorming-application\\backend\\BrainstormingApp.Core\\BrainstormingApp.Core.csproj",
+        "projectUniqueName": "c:\\Users\\Asus\\Desktop\\x\\brainstorming-application\\backend\\BrainstormingApp.Core\\BrainstormingApp.Core.csproj",
         "projectName": "BrainstormingApp.Core",
-        "projectPath": "C:\\Users\\Asus\\Desktop\\x\\brainstorming-application\\backend\\BrainstormingApp.Core\\BrainstormingApp.Core.csproj",
+        "projectPath": "c:\\Users\\Asus\\Desktop\\x\\brainstorming-application\\backend\\BrainstormingApp.Core\\BrainstormingApp.Core.csproj",
         "packagesPath": "C:\\Users\\Asus\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Asus\\Desktop\\x\\brainstorming-application\\backend\\BrainstormingApp.Core\\obj\\",
+        "outputPath": "c:\\Users\\Asus\\Desktop\\x\\brainstorming-application\\backend\\BrainstormingApp.Core\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Asus\\AppData\\Roaming\\NuGet\\NuGet.Config",
