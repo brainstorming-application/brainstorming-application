@@ -101,7 +101,11 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   logout: () => {
+    // Clear all localStorage data
+    localStorage.clear();
+    // Call authService logout
     authService.logout();
+    // Reset all state
     set({
       user: null,
       token: null,

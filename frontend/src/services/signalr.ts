@@ -34,9 +34,23 @@ class SignalRService {
 
   async disconnect() {
     if (this.connection) {
-      await this.connection.stop();
-      this.connection = null;
-      console.log('SignalR Disconnected');
+      try {
+        // Remove all event listeners
+        this.connection.off('IdeaSubmitted');
+        this.connection.off('RoundStarted');
+        this.connection.off('RoundEnded');
+        this.connection.off('SessionStatusChanged');
+        this.connection.off('MemberJoined');
+        this.connection.off('MemberLeft');
+        this.connection.off('NotificationReceived');
+        
+        await this.connection.stop();
+        console.log('SignalR Disconnected');
+      } catch (err) {
+        console.error('Error disconnecting SignalR:', err);
+      } finally {
+        this.connection = null;
+      }
     }
   }
 

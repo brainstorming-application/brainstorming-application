@@ -42,7 +42,7 @@ export default function BrainstormingRoom() {
   const canManage = user?.role === UserRole.EventManager || user?.role === UserRole.TeamLeader;
 
   useEffect(() => {
-    if (sessionId) {
+    if (sessionId && user?.id) {
       loadSessionData();
       connectSignalR();
     }
@@ -53,27 +53,49 @@ export default function BrainstormingRoom() {
       }
       disconnectSignalR();
     };
-  }, [sessionId]);
+  }, [sessionId, user?.id]);
 
+  // Timer effect - stops timer when session is not in progress
   useEffect(() => {
-    if (session?.status === SessionStatus.InProgress && remainingTime > 0) {
-      timerRef.current = setInterval(() => {
-        setRemainingTime((prev) => {
-          if (prev <= 1) {
-            if (timerRef.current) clearInterval(timerRef.current);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
+    // Stop timer if session is not in progress
+    if (session?.status !== SessionStatus.InProgress) {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
     }
 
     return () => {
       if (timerRef.current) {
         clearInterval(timerRef.current);
+        timerRef.current = null;
       }
     };
-  }, [session?.status, session?.currentRound]);
+  }, [session?.status]);
+
+  const startTimer = (initialTime: number) => {
+    // Clear any existing timer first
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+
+    if (initialTime > 0) {
+      timerRef.current = setInterval(() => {
+        setRemainingTime((prev) => {
+          const newTime = prev - 1;
+          if (newTime <= 0) {
+            if (timerRef.current) {
+              clearInterval(timerRef.current);
+              timerRef.current = null;
+            }
+            return 0;
+          }
+          return newTime;
+        });
+      }, 1000);
+    }
+  };
 
   const loadSessionData = async () => {
     if (!sessionId) return;
@@ -91,16 +113,25 @@ export default function BrainstormingRoom() {
       // Get all ideas flat for counting
       const allIdeas = groupedIdeas.flatMap((r) => r.ideas);
 
-      // Count my ideas in current round
-      const myCurrentRoundIdeas = allIdeas.filter(
-        (idea) => idea.userId === user?.id && idea.roundNumber === sessionData.currentRound
-      );
-      setMyIdeasCount(myCurrentRoundIdeas.length);
+      // Count my ideas in current round - use backend verification for accuracy
+      try {
+        const currentRound = await sessionService.getCurrentRound(sessionId);
+        const canSubmitData = await ideaService.canSubmit(currentRound.id);
+        setMyIdeasCount(canSubmitData.currentCount);
+      } catch {
+        // Fallback to frontend calculation if backend call fails
+        const myCurrentRoundIdeas = allIdeas.filter(
+          (idea) => idea.userId === user?.id && idea.roundNumber === sessionData.currentRound
+        );
+        setMyIdeasCount(myCurrentRoundIdeas.length);
+      }
 
       // Get remaining time if session is in progress
       if (sessionData.status === SessionStatus.InProgress) {
         const timeData = await sessionService.getRemainingTime(sessionId);
         setRemainingTime(timeData.remainingSeconds);
+        // Start timer when remaining time is loaded
+        startTimer(timeData.remainingSeconds);
       }
 
       // Load analytics if session is completed
@@ -144,9 +175,15 @@ export default function BrainstormingRoom() {
       });
 
       signalRService.onRoundStarted((roundNumber: number) => {
-        setSession((prev) => prev ? { ...prev, currentRound: roundNumber } : null);
-        setMyIdeasCount(0);
-        setRemainingTime(session?.roundDurationMinutes ? session.roundDurationMinutes * 60 : 300);
+        setSession((prev) => {
+          const newSession = prev ? { ...prev, currentRound: roundNumber } : null;
+          const roundDuration = newSession?.roundDurationMinutes ? newSession.roundDurationMinutes * 60 : 300;
+          setMyIdeasCount(0);
+          setRemainingTime(roundDuration);
+          // Start timer when new round begins
+          startTimer(roundDuration);
+          return newSession;
+        });
         showNotification(`Round ${roundNumber} started!`);
       });
 
@@ -189,10 +226,28 @@ export default function BrainstormingRoom() {
 
   const handleSubmitIdea = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!sessionId || !newIdea.trim() || myIdeasCount >= 3) return;
+    if (!sessionId || !newIdea.trim()) return;
+
+    // Double-check with frontend state first
+    if (myIdeasCount >= 3) {
+      setError('You have already submitted 3 ideas this round');
+      return;
+    }
 
     try {
       setSubmitting(true);
+      
+      // Get current round and verify submission limit with backend
+      const currentRound = await sessionService.getCurrentRound(sessionId);
+      const canSubmitData = await ideaService.canSubmit(currentRound.id);
+      
+      if (!canSubmitData.canSubmit) {
+        setError(`You have already submitted ${canSubmitData.currentCount}/${canSubmitData.maxAllowed} ideas this round`);
+        // Update frontend state to match backend
+        setMyIdeasCount(canSubmitData.currentCount);
+        return;
+      }
+
       await ideaService.submit({
         sessionId,
         content: newIdea.trim(),
