@@ -23,7 +23,23 @@ export const eventService = {
   },
 
   async updateStatus(id: string, status: EventStatus): Promise<void> {
-    await api.patch(`/events/${id}/status`, { status });
+    let endpoint = '';
+    switch (status) {
+      case EventStatus.Active:
+        endpoint = `/events/${id}/start`;
+        break;
+      case EventStatus.Completed:
+        endpoint = `/events/${id}/complete`;
+        break;
+      case EventStatus.Cancelled:
+        endpoint = `/events/${id}/cancel`;
+        break;
+      case EventStatus.Planned:
+        return;
+      default:
+        throw new Error(`Unsupported status: ${status as string}`);
+    }
+    await api.post<Event>(endpoint);
   },
 
   async delete(id: string): Promise<void> {
