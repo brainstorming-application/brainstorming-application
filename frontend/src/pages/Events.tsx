@@ -36,6 +36,18 @@ export default function Events() {
 
   const handleCreateEvent = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate dates
+    if (formData.startDate && formData.endDate) {
+      const startDate = new Date(formData.startDate);
+      const endDate = new Date(formData.endDate);
+      
+      if (endDate <= startDate) {
+        setError('End date must be after start date');
+        return;
+      }
+    }
+    
     try {
       await eventService.create(formData);
       setShowCreateModal(false);

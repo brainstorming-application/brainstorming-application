@@ -13,7 +13,13 @@ export const eventService = {
   },
 
   async create(data: CreateEventRequest): Promise<Event> {
-    const response = await api.post<Event>('/events', data);
+    const payload = {
+      name: data.name,
+      description: data.description || null,
+      startDate: data.startDate ? new Date(data.startDate).toISOString() : null,
+      endDate: data.endDate ? new Date(data.endDate).toISOString() : null,
+    };
+    const response = await api.post<Event>('/events', payload);
     return response.data;
   },
 
