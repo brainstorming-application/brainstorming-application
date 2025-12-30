@@ -24,7 +24,7 @@ interface AuthState {
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
+  user: localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!) : null,
   token: localStorage.getItem('token'),
   isAuthenticated: !!localStorage.getItem('token'),
   isLoading: false,
@@ -56,9 +56,12 @@ export const useAuthStore = create<AuthState>((set) => ({
         isAuthenticated: true,
         isLoading: false,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error && typeof error === 'object' && 'response' in error 
+        ? ((error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Login failed')
+        : 'Login failed';
       set({
-        error: error.response?.data?.message || 'Login failed',
+        error: errorMessage,
         isLoading: false,
       });
       throw error;
@@ -91,9 +94,12 @@ export const useAuthStore = create<AuthState>((set) => ({
         isAuthenticated: true,
         isLoading: false,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error && typeof error === 'object' && 'response' in error 
+        ? ((error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Registration failed')
+        : 'Registration failed';
       set({
-        error: error.response?.data?.message || 'Registration failed',
+        error: errorMessage,
         isLoading: false,
       });
       throw error;
@@ -116,28 +122,55 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   checkAuth: async () => {
     const token = localStorage.getItem('token');
+    const storedUser = localStorage.getItem('user');
+    
     if (!token) {
-      set({ isAuthenticated: false, user: null, token: null });
+      set({ isAuthenticated: false, user: null, token: null, isLoading: false });
       return;
+    }
+
+    // If we have both token and user data, set them immediately
+    if (storedUser) {
+      try {
+        const user = JSON.parse(storedUser);
+        set({
+          user,
+          token,
+          isAuthenticated: true,
+          isLoading: false,
+        });
+        return;
+      } catch (parseError) {
+        // If stored user data is corrupted, continue with API call
+        console.warn('Corrupted user data in localStorage:', parseError);
+      }
     }
 
     set({ isLoading: true });
     try {
       const response = await authService.getCurrentUser();
+      const userData = {
+        id: response.userId,
+        email: response.email,
+        firstName: response.firstName,
+        lastName: response.lastName,
+        role: response.role,
+      };
+
+      // Update localStorage with fresh data
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('token', response.token);
+
       set({
-        user: {
-          id: response.userId,
-          email: response.email,
-          firstName: response.firstName,
-          lastName: response.lastName,
-          role: response.role,
-        },
+        user: userData,
         token: response.token,
         isAuthenticated: true,
         isLoading: false,
       });
-    } catch (error) {
-      authService.logout();
+    } catch {
+      // Clear invalid data
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
       set({
         user: null,
         token: null,
