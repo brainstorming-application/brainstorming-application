@@ -7,6 +7,7 @@ import EventDetail from './pages/EventDetail';
 import Teams from './pages/Teams';
 import Sessions from './pages/Sessions';
 import BrainstormingRoom from './pages/BrainstormingRoom';
+import UserProfile from './pages/UserProfile';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -73,6 +74,16 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <BrainstormingRoom />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <UserProfile />
               </Layout>
             </ProtectedRoute>
           }

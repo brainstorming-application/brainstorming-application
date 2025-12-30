@@ -238,6 +238,7 @@ export interface GenerateSummaryResponse {
   summary: string;
   keyThemes: string[];
   tokensUsed: number;
+  topIdeas: string[];
 }
 
 export interface GenerateAnnotationRequest {
